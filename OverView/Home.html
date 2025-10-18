@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نمایش فیکس اسلایدشو بدون اسکرول</title>
+    <title>نمایش فیکس اسلایدشو (اصلاح‌شده)</title>
     <style>
-        /* CSS پایه برای نسبت تصویر ۱۶:۹ */
+        /* CSS برای تنظیم واکنش‌گرا و رفع مشکل بیرون زدگی */
         .canva-embed-container {
             position: relative;
             width: 100%;
-            overflow: hidden; /* بسیار مهم: این overflow را از کانتینر والد حذف می‌کند */
+            overflow: hidden; 
             
             height: 0; 
-            padding-top: 56.25%; /* نسبت ۱۶:۹. این مقدار را اگر طرح شما ۱۶:۹ نیست، تغییر دهید */
+            /* اصلاح نهایی نسبت تصویر ۱۶:۹ به ۵۵.۵٪ برای جبران حاشیه‌های اضافی کانوا */
+            padding-top: 55%; 
             
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
             margin-top: 0px;
-            margin-bottom: 0px;
+            margin-bottom: 0px; /* کاهش مارجین پایین برای فضا دادن به لینک */
         }
 
-        /* iframe باید مطلق باشد و ۱۰۰% کانتینر والد را بگیرد */
+        /* iframe باید ۱۰۰% کانتینر والد را پر کند */
         .canva-embed-container iframe {
             position: absolute;
             top: 0;
@@ -30,7 +31,7 @@
             border: none;
             padding: 0;
             margin: 0;
-            /* اگر همچنان اسکرول داخلی وجود دارد، این ویژگی آن را حذف می‌کند: */
+            /* اطمینان از حذف اسکرول داخلی iframe */
             overflow: hidden; 
         }
 
@@ -51,8 +52,6 @@
             loading="lazy"
             src="https://www.canva.com/design/DAG1voFKvY8/P9S3Y5PVvihnm8O6jSYAwQ/view?embed"
             allowfullscreen
-            
-            /* این صفت قدیمی است اما گاهی اوقات در مرورگرهای قدیمی کار می‌کند */
             scrolling="no" 
         ></iframe>
     </div>
