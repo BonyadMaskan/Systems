@@ -3,28 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نمایش فیکس اسلایدشو</title>
+    <title>نمایش فیکس اسلایدشو بدون اسکرول</title>
     <style>
-        /* CSS برای تنظیم واکنش‌گرا و نسبت تصویر */
+        /* CSS پایه برای نسبت تصویر ۱۶:۹ */
         .canva-embed-container {
-            /* تنظیم موقعیت والد برای iframe داخلی */
             position: relative;
             width: 100%;
-            overflow: hidden;
-
-            /* Aspect Ratio (نسبت تصویر) ۱۶:۹ */
-            height: 0; 
-            padding-top: 53%; /* (9 / 16) * 100 = 56.25% */
+            overflow: hidden; /* بسیار مهم: این overflow را از کانتینر والد حذف می‌کند */
             
-            /* تنظیمات ظاهری (اختیاری) */
+            height: 0; 
+            padding-top: 56.25%; /* نسبت ۱۶:۹. این مقدار را اگر طرح شما ۱۶:۹ نیست، تغییر دهید */
+            
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-            margin-top: 20px;
-            margin-bottom: 20px;
-            background-color: #f7f7f7; /* برای زمانی که محتوا لود نشده است */
+            margin-top: 0px;
+            margin-bottom: 0px;
         }
 
-        /* iframe باید ۱۰۰% کانتینر والد را پر کند */
+        /* iframe باید مطلق باشد و ۱۰۰% کانتینر والد را بگیرد */
         .canva-embed-container iframe {
             position: absolute;
             top: 0;
@@ -34,9 +30,10 @@
             border: none;
             padding: 0;
             margin: 0;
+            /* اگر همچنان اسکرول داخلی وجود دارد، این ویژگی آن را حذف می‌کند: */
+            overflow: hidden; 
         }
 
-        /* استایل‌دهی به لینک زیرین (اختیاری) */
         .canva-credit-link {
             display: block; 
             text-align: right;
@@ -54,6 +51,9 @@
             loading="lazy"
             src="https://www.canva.com/design/DAG1voFKvY8/P9S3Y5PVvihnm8O6jSYAwQ/view?embed"
             allowfullscreen
+            
+            /* این صفت قدیمی است اما گاهی اوقات در مرورگرهای قدیمی کار می‌کند */
+            scrolling="no" 
         ></iframe>
     </div>
 
@@ -68,4 +68,3 @@
 
 </body>
 </html>
-
