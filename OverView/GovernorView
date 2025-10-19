@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اطلاعات استانداران کشور</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --bg-light: #f8f9fa;
+            --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            --border-radius: 10px; /* کاهش جزئی رادیوس */
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 15px; /* کاهش فاصله کلی صفحه */
+            text-align: right;
+            line-height: 1.5; /* کاهش فاصله سطرها */
+            color: #343a40;
+        }
+
+        .container {
+            max-width: 1300px; /* افزایش عرض برای نمایش تعداد بیشتر کارت در یک سطر */
+            margin: 0 auto;
+        }
+
+        .title {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px; /* کاهش فاصله زیر عنوان */
+            font-weight: 700;
+            font-size: 2.2em; /* کاهش جزئی اندازه عنوان */
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 8px;
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* طراحی کارت‌ها به صورت گرید (شبکه) */
+        .cards-grid {
+            /* تنظیم پاسخ‌دهی برای نمایش بیشتر در عرض‌های بزرگ */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* کاهش minmax برای جایگیری کارت‌های بیشتر */
+            gap: 20px; /* کاهش فاصله بین کارت‌ها */
+            padding: 0;
+            list-style: none;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 15px; /* کاهش Padding داخلی */
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        /* تنظیمات تصویر به صورت کوچک و دایره‌ای */
+        .governor-image {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-position: 0 5%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 0px; /* کاهش فاصله زیر تصویر */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-top: 0px; /* **تغییر کلیدی:** اضافه کردن فاصله از بالا برای جلوگیری از حذف سر */
+        }
+
+        .province-name {
+            font-size: 1em; /* کاهش جزئی اندازه فونت */
+            color: var(--secondary-color);
+            margin-bottom: -10px; /* کاهش فاصله سطرها */
+            line-height: 1.2;
+        }
+
+        .governor-name {
+            font-size: 1.3em; /* کاهش جزئی اندازه فونت */
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 0;
+            line-height: 1;
+        }
+
+        .loading-message, .error-message {
+            text-align: center;
+            font-size: 1.1em;
+            padding: 20px; /* کاهش Padding */
+            color: var(--secondary-color);
+        }
+
+        .error-message {
+            color: #dc3545;
+            border: 1px solid #dc3545;
+            background-color: #f8d7da;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="title">اطلاعات استانداران کشور 🇮🇷</h1>
+        <div id="governors-list" class="cards-grid">
+            </div>
+        <div id="loading" class="loading-message">
+            <p>درحال فراخوانی داده‌ها...</p>
+        </div>
+        <div id="error" class="error-message" style="display:none;"></div>
+    </div>
+
+    <script>
+        // *** مهم: لینک زیر را با آدرس Web App ای که از Apps Script دریافت کردید جایگزین کنید ***
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyMZra-rxXYnqZqbszT861arsBP_Q-mrGt4Jxo5qjCCLDyOXDQO92enEcNax9C3bYcd/exec'; 
+        
+        const listContainer = document.getElementById('governors-list');
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+
+        async function fetchGovernorData() {
+            loadingElement.style.display = 'block';
+            listContainer.innerHTML = '';
+            errorElement.style.display = 'none';
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`خطای شبکه: ${response.status}`);
+                }
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(`خطای سمت سرور (Apps Script): ${data.error}`);
+                }
+
+                if (data.length === 0) {
+                    listContainer.innerHTML = '<div class="loading-message">داده‌ای در شیت یافت نشد.</div>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    const img = document.createElement('img');
+                    img.src = item.image_url || 'https://via.placeholder.com/90/CCCCCC/FFFFFF?text=No+Img';
+                    img.alt = `تصویر ${item.governor_name}`;
+                    img.className = 'governor-image';
+                    img.onerror = function() {
+                        this.src = 'https://via.placeholder.com/90/CCCCCC/FFFFFF?text=خطا';
+                    };
+
+                    const provinceP = document.createElement('p');
+                    provinceP.className = 'province-name';
+                    provinceP.textContent = item.province;
+
+                    const governorH = document.createElement('h3');
+                    governorH.className = 'governor-name';
+                    governorH.textContent = item.governor_name;
+
+                    card.appendChild(img);
+                    card.appendChild(provinceP);
+                    card.appendChild(governorH);
+                    listContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                errorElement.textContent = `متاسفانه در دریافت داده‌ها خطایی رخ داد: ${error.message}`;
+                errorElement.style.display = 'block';
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        // فراخوانی تابع برای بارگذاری داده‌ها پس از آماده شدن صفحه
+        fetchGovernorData();
+    </script>
+
+</body>
+</html>
