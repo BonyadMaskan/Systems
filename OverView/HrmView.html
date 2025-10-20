@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد جامع پرسنل (HRM) - داده‌های شبیه‌سازی شده</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vazirmatn Font for Persian display -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e0e7ff 100%);
+        }
+        /* Custom styles to ensure proper gauge rendering height */
+        .gauge-container {
+            width: 100%;
+            height: 180px;
+            min-width: 150px;
+        }
+        /* برای موبایل، گیج‌ها و کارت‌ها به خوبی زیر هم قرار می‌گیرند */
+        @media (max-width: 1024px) {
+            .gauge-card {
+                min-width: 100%;
+            }
+        }
+        /* برای بهتر شدن فونت در نمودارهای گوگل */
+        text { font-family: 'Vazirmatn', sans-serif !important; }
+        
+        #last-update {
+            font-size: 1.25rem; /* Large size for update time */
+            font-weight: 600;
+            color: #4f46e5;
+        }
+        /* کلاس‌های اضافی برای مدیریت بهتر نمایش اعشار و فونت در بخش مالی */
+        .financial-value {
+             word-break: break-all;
+             direction: ltr; /* برای نمایش بهتر اعداد طولانی */
+             font-family: 'Vazirmatn', sans-serif; 
+             font-weight: 700;
+             text-align: left; /* برای هم ترازی بهتر اعداد در سمت چپ */
+             flex-shrink: 0; /* جلوگیری از کوچک شدن عدد در صفحه نمایش کوچک */
+        }
+    </style>
+    <!-- Load Google Charts Library for Gauges -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-12 bg-white p-6 rounded-2xl shadow-xl">
+            <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wide">داشبورد جامع پرسنل (HRM)</h1>
+            <p class="mt-2 text-xl text-gray-600">گزارش لحظه‌ای حضور و غیاب و شاخص‌های مالی (داده‌های شبیه‌سازی شده)</p>
+            <p id="last-update" class="mt-4 text-sm text-gray-500 font-mono italic">آخرین بروزرسانی: --:--:--</p>
+            
+            <div id="error-message" class="mt-4 text-red-600 text-lg font-bold hidden p-3 bg-red-100 border border-red-400 rounded-lg shadow-md transition duration-300">
+                خطا در دریافت نام استان‌ها. Web App را بررسی کنید.
+            </div>
+        </header>
+
+        <div id="dashboard-content" class="space-y-8">
+            <!-- Province data rows will be injected here -->
+        </div>
+
+    </div>
+
+    <script>
+        // !!! آدرس Web Appی که در اختیار دارید را اینجا قرار می‌دهم (فقط برای دریافت نام و تصویر) !!!
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby_H_jXKcfIwy08RYMtjPOY0CqlFwy58aZi2S6AyNK0WDey8SjFux1OH8xpsAWnpsQ6/exec'; 
+        
+        // فاصله زمانی بروزرسانی (۵۰۰۰ میلی‌ثانیه = ۵ ثانیه)
+        const UPDATE_INTERVAL = 5000; 
+        const TOTAL_PERSONNEL_CAP = 600; // سقف ثابت برای محاسبات گیج‌های حضور و غیاب
+        
+        let PROVINCES_DATA = []; // ذخیره داده‌های اولیه استان‌ها
+        const gaugeCharts = {}; // نگهداری نمونه‌های نمودار برای به‌روزرسانی سریع
+        
+        // لیست کامل و ثابت استان‌های ایران
+        const ALL_IRAN_PROVINCES = [
+            "آذربایجان شرقی", "آذربایجان غربی", "اردبیل", "اصفهان", "البرز", 
+            "ایلام", "بوشهر", "تهران", "چهارمحال و بختیاری", "خراسان جنوبی", 
+            "خراسان رضوی", "خراسان شمالی", "خوزستان", "زنجان", "سمنان", 
+            "سیستان و بلوچستان", "فارس", "قزوین", "قم", "کردستان", 
+            "کرمان", "کرمانشاه", "کهگیلویه و بویراحمد", "گلستان", "گیلان", 
+            "لرستان", "مازندران", "مرکزی", "هرمزگان", "همدان", "یزد"
+        ].map(p => ({ province: p, image: null })); 
+
+        // تعریف بازه‌های تصادفی (با مقادیر بسیار بزرگ ریالی جدید)
+        const RANGES = {
+            present: { min: 300, max: 500, update: true, label: 'حاضرین', fullLabel: 'حضور آنلاین' },
+            absent: { min: 20, max: 60, update: true, label: 'غایبین', fullLabel: 'غایبین آنلاین' },
+            missionDays: { min: 20, max: 80, update: false, label: 'ماموریت', fullLabel: 'روزهای ماموریت' },
+            leaveDays: { min: 30, max: 90, update: false, label: 'مرخصی', fullLabel: 'روزهای مرخصی' },
+
+            // مقادیر ریالی ثابت (فقط برای بارگذاری اولیه تولید می‌شوند)
+            totalSalary: { min: 4510265851, max: 89471171880, label: 'جمع حقوق پرداختی' }, 
+            missionPayValue: { min: 471171880, max: 1910265851, label: 'حق ماموریت پرداختی' },
+            perCapitaPayValue: { min: 71171880, max: 910265851, label: 'سرانه پرداختی' }
+        };
+        
+        // --- تابع حیاتی برای تولید ID امن DOM ---
+        /**
+         * Function to generate a safe DOM ID from the province name.
+         * @param {string} provinceName - The name of the province.
+         * @returns {string} The sanitized ID.
+         */
+        function getProvinceId(provinceName) {
+            if (!provinceName) return '';
+            // 1. Remove special characters (Zar, Zer, Pish)
+            let id = provinceName.replace(/[\u064e-\u0651\u0655\u0670\u067e-\u067f]/g, ''); 
+            // 2. Convert spaces to hyphens
+            id = id.replace(/\s+/g, '-');
+            // 3. Remove all non-Persian/English letters, numbers, and hyphens
+            id = id.replace(/[^\u0600-\u06FFa-zA-Z0-9-]/g, '');
+            return id;
+        }
+
+        // Prepare Google Charts
+        google.charts.load('current', {'packages':['gauge']});
+        google.charts.setOnLoadCallback(initDashboard);
+
+        /**
+         * Helper function to generate a random number within a range.
+         * @param {number} min - Minimum value.
+         * @param {number} max - Maximum value.
+         * @param {boolean} [round=true] - Whether to round the result.
+         * @returns {number} The random number.
+         */
+        function getRandomNumber(min, max, round = true) {
+            const num = Math.random() * (max - min) + min;
+            return round ? Math.floor(num) : num;
+        }
+
+        /**
+         * Initialize the dashboard and set up the timer.
+         */
+        function initDashboard() {
+            if (typeof google.visualization === 'undefined') {
+                setTimeout(initDashboard, 100); 
+                return;
+            }
+            fetchInitialProvinces(); 
+            // Only update attendance gauges every 5 seconds. Financial metrics are static.
+            setInterval(updateRealTimeGauges, UPDATE_INTERVAL); 
+        }
+
+        /**
+         * Step 1: Fetch initial province names and images (once).
+         */
+        async function fetchInitialProvinces() {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.classList.add('hidden');
+            let fetchedData = [];
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); 
+                
+                const response = await fetch(WEB_APP_URL, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                fetchedData = data.map(item => ({
+                    province: item.province,
+                    image: item.image
+                }));
+
+            } catch (error) {
+                // ... (Log errors)
+                errorMessage.innerText = `خطا در دریافت داده‌های Web App یا زمان‌بر شدن درخواست. از لیست ثابت استان‌ها استفاده می‌شود.`;
+                errorMessage.classList.remove('hidden');
+            }
+            
+            PROVINCES_DATA = fetchedData.length > 0 ? fetchedData : ALL_IRAN_PROVINCES;
+
+            renderInitialDashboard(PROVINCES_DATA);
+        }
+        
+        /**
+         * Step 2: Render the dashboard structure and initial values (once).
+         */
+        function renderInitialDashboard(provinces) {
+            const container = document.getElementById('dashboard-content');
+            
+            // 1. Create HTML structure
+            if (container.children.length === 0) {
+                container.innerHTML = provinces.map(item => createProvinceRow(item)).join('');
+            }
+            
+            // 2. Draw gauges and set static financial metrics
+            for (const item of provinces) {
+                const provinceId = getProvinceId(item.province);
+                try {
+                    drawGaugesAndMetrics(provinceId); 
+                } catch (e) {
+                    console.error(`CRITICAL ERROR: Failed to draw initial metrics for ${item.province} (ID: ${provinceId}).`, e);
+                }
+            }
+            
+            updateLastUpdateTime();
+        }
+        
+        /**
+         * Step 3: Update attendance gauges in real-time.
+         */
+        function updateRealTimeGauges() {
+            if (PROVINCES_DATA.length === 0) return; 
+
+            for (const item of PROVINCES_DATA) {
+                const provinceId = getProvinceId(item.province);
+                
+                try {
+                    // --- 1. Update Attendance Gauges ---
+                    const present = getRandomNumber(RANGES.present.min, RANGES.present.max);
+                    const absent = getRandomNumber(RANGES.absent.min, RANGES.absent.max);
+
+                    // Present Gauge
+                    const presentData = google.visualization.arrayToDataTable([
+                        ['Label', 'Value'], [RANGES.present.label, present]
+                    ]);
+                    if (document.getElementById(`gauge-present-${provinceId}`)) {
+                         drawGauge(`gauge-present-${provinceId}`, presentData, TOTAL_PERSONNEL_CAP, RANGES.present.label);
+                    }
+
+                    // Absent Gauge
+                    const absentData = google.visualization.arrayToDataTable([
+                        ['Label', 'Value'], [RANGES.absent.label, absent]
+                    ]);
+                    if (document.getElementById(`gauge-absent-${provinceId}`)) {
+                        drawGauge(`gauge-absent-${provinceId}`, absentData, TOTAL_PERSONNEL_CAP, RANGES.absent.label);
+                    }
+                    
+                    // Financial metrics are NOT updated here.
+
+                } catch (e) {
+                    console.error(`Error updating real-time gauges for ${item.province}:`, e);
+                }
+            }
+            
+            updateLastUpdateTime();
+        }
+
+        /**
+         * Draw all gauges and set static financial values (once on load).
+         */
+        function drawGaugesAndMetrics(provinceId) {
+            
+            // Generate random numbers for gauges
+            const present = getRandomNumber(RANGES.present.min, RANGES.present.max);
+            const absent = getRandomNumber(RANGES.absent.min, RANGES.absent.max);
+            const missionDays = getRandomNumber(RANGES.missionDays.min, RANGES.missionDays.max);
+            const leaveDays = getRandomNumber(RANGES.leaveDays.min, RANGES.leaveDays.max);
+            
+            // --- Static Financial Values (Generated once) ---
+            const totalSalaryPay = getRandomNumber(RANGES.totalSalary.min, RANGES.totalSalary.max, false);
+            const missionPay = getRandomNumber(RANGES.missionPayValue.min, RANGES.missionPayValue.max, false);
+            const perCapitaPay = getRandomNumber(RANGES.perCapitaPayValue.min, RANGES.perCapitaPayValue.max, false);
+            
+            // Update financial text elements
+            const salaryEl = document.getElementById(`salary-${provinceId}`);
+            if (salaryEl) salaryEl.innerText = formatCurrency(totalSalaryPay);
+
+            const missionPayEl = document.getElementById(`mission-pay-${provinceId}`);
+            if (missionPayEl) missionPayEl.innerText = formatCurrency(missionPay);
+            
+            const perCapitaPayEl = document.getElementById(`per-capita-pay-${provinceId}`);
+            if (perCapitaPayEl) perCapitaPayEl.innerText = formatCurrency(perCapitaPay);
+
+            // 1. Online Present Gauge
+            if (document.getElementById(`gauge-present-${provinceId}`)) {
+                const presentData = google.visualization.arrayToDataTable([['Label', 'Value'], [RANGES.present.label, present]]);
+                drawGauge(`gauge-present-${provinceId}`, presentData, TOTAL_PERSONNEL_CAP, RANGES.present.label);
+            }
+
+            // 2. Online Absent Gauge
+            if (document.getElementById(`gauge-absent-${provinceId}`)) {
+                const absentData = google.visualization.arrayToDataTable([['Label', 'Value'], [RANGES.absent.label, absent]]);
+                drawGauge(`gauge-absent-${provinceId}`, absentData, TOTAL_PERSONNEL_CAP, RANGES.absent.label);
+            }
+            
+            // 3. Mission Days Gauge
+            if (document.getElementById(`gauge-mission-${provinceId}`)) {
+                const missionData = google.visualization.arrayToDataTable([['Label', 'Value'], [RANGES.missionDays.label, missionDays]]);
+                drawGauge(`gauge-mission-${provinceId}`, missionData, 100, RANGES.missionDays.label); 
+            }
+
+            // 4. Leave Days Gauge
+            if (document.getElementById(`gauge-leave-${provinceId}`)) {
+                const leaveData = google.visualization.arrayToDataTable([['Label', 'Value'], [RANGES.leaveDays.label, leaveDays]]);
+                drawGauge(`gauge-leave-${provinceId}`, leaveData, 100, RANGES.leaveDays.label); 
+            }
+        }
+
+        /**
+         * Create the HTML structure for a single province row.
+         */
+        function createProvinceRow(item) {
+            const provinceId = getProvinceId(item.province); 
+            const defaultImage = "https://placehold.co/100x100/A5B4FC/3730A3?text=استان"; 
+            const provinceImage = item.image || defaultImage.replace('استان', encodeURIComponent(item.province));
+            const initialValue = '--';
+
+            return `
+                <div class="province-row bg-white p-6 lg:p-8 rounded-2xl shadow-2xl transition duration-500 hover:shadow-indigo-400/50">
+                    
+                    <!-- Header Section -->
+                    <div class="flex flex-col lg:flex-row items-center lg:items-start border-b pb-4 mb-4">
+                        <img 
+                            src="${provinceImage}" 
+                            alt="${item.province}" 
+                            onerror="this.onerror=null; this.src='${defaultImage.replace('استان', encodeURIComponent(item.province))}';"
+                            class="w-16 h-16 rounded-full object-cover ring-4 ring-indigo-300 shadow-lg mb-4 lg:mb-0 lg:ml-6"
+                        >
+                        <div class="text-center lg:text-right">
+                            <h2 class="text-3xl font-extrabold text-indigo-700">${item.province}</h2>
+                            <p class="text-lg text-gray-500 mt-1">تعداد کل پرسنل (سقف): <span class="font-extrabold text-indigo-600">${formatNumber(TOTAL_PERSONNEL_CAP)}</span> نفر</p>
+                        </div>
+                    </div>
+
+                    <!-- Gauges Section -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                        
+                        <!-- 1. Online Present Gauge -->
+                        <div class="gauge-card p-4 bg-green-50 rounded-lg shadow-inner border-t-4 border-green-500">
+                            <h3 class="text-center text-base font-bold text-green-700 mb-2">${RANGES.present.fullLabel}</h3>
+                            <div id="gauge-present-${provinceId}" class="gauge-container mx-auto"></div>
+                        </div>
+
+                        <!-- 2. Online Absent Gauge -->
+                        <div class="gauge-card p-4 bg-red-50 rounded-lg shadow-inner border-t-4 border-red-500">
+                            <h3 class="text-center text-base font-bold text-red-700 mb-2">${RANGES.absent.fullLabel}</h3>
+                            <div id="gauge-absent-${provinceId}" class="gauge-container mx-auto"></div>
+                        </div>
+                        
+                        <!-- 3. Mission Days Gauge -->
+                        <div class="gauge-card p-4 bg-blue-50 rounded-lg shadow-inner border-t-4 border-blue-500">
+                            <h3 class="text-center text-base font-bold text-blue-700 mb-2">${RANGES.missionDays.fullLabel} (ماه قبل)</h3>
+                            <div id="gauge-mission-${provinceId}" class="gauge-container mx-auto"></div>
+                        </div>
+
+                        <!-- 4. Leave Days Gauge -->
+                        <div class="gauge-card p-4 bg-yellow-50 rounded-lg shadow-inner border-t-4 border-yellow-500">
+                            <h3 class="text-center text-base font-bold text-yellow-700 mb-2">${RANGES.leaveDays.fullLabel} (ماه قبل)</h3>
+                            <div id="gauge-leave-${provinceId}" class="gauge-container mx-auto"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Financial Section (Static - Displayed in one line) -->
+                    <div class="mt-6 p-4 bg-indigo-100 rounded-lg shadow-md">
+                        <div class="space-y-3">
+                            <!-- 1. Total Salary Paid -->
+                            <div class="flex justify-between items-baseline border-b border-indigo-200 pb-2">
+                                <p class="text-lg font-bold text-indigo-700 whitespace-nowrap">${RANGES.totalSalary.label}:</p>
+                                <p id="salary-${provinceId}" class="text-xl lg:text-2xl text-indigo-900 financial-value mr-4">${initialValue}</p>
+                            </div>
+
+                            <!-- 2. Mission Pay Paid -->
+                            <div class="flex justify-between items-baseline border-b border-indigo-200 pb-2">
+                                <p class="text-base font-semibold text-indigo-600 whitespace-nowrap">${RANGES.missionPayValue.label}:</p>
+                                <p id="mission-pay-${provinceId}" class="text-lg lg:text-xl text-indigo-800 financial-value mr-4">${initialValue}</p>
+                            </div>
+
+                            <!-- 3. Per Capita Pay -->
+                            <div class="flex justify-between items-baseline">
+                                <p class="text-base font-semibold text-indigo-600 whitespace-nowrap">${RANGES.perCapitaPayValue.label}:</p>
+                                <p id="per-capita-pay-${provinceId}" class="text-lg lg:text-xl text-indigo-800 financial-value mr-4">${initialValue}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+        }
+
+        /**
+         * Update the last update time display.
+         */
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('last-update').innerText = 
+                `آخرین بروزرسانی: ${now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+        }
+
+        /**
+         * Draw or update the Google Gauge chart.
+         */
+        function drawGauge(elementId, data, max, label) {
+            
+            let options = {
+                width: '100%',
+                height: 180,
+                minorTicks: 5,
+                max: max,
+                majorTicks: ['0', max * 0.25, max * 0.5, max * 0.75, max].map(v => v.toString()),
+            };
+
+            // Color logic for 'Present' (Higher is better)
+            if (label === RANGES.present.label) {
+                options = {
+                    ...options,
+                    redFrom: 0, redTo: max * 0.5, 
+                    yellowFrom: max * 0.5, yellowTo: max * 0.8,
+                    greenFrom: max * 0.8, greenTo: max,
+                };
+            } 
+            // Color logic for 'Absent', 'Mission', 'Leave' (Lower is better)
+            else {
+                options = {
+                    ...options,
+                    greenFrom: 0, greenTo: max * 0.5,
+                    yellowFrom: max * 0.5, yellowTo: max * 0.8, 
+                    redFrom: max * 0.8, redTo: max,
+                };
+            }
+            
+            // Use stored instance for quick update
+            if (gaugeCharts[elementId]) {
+                gaugeCharts[elementId].draw(data, options);
+            } else {
+                const chart = new google.visualization.Gauge(document.getElementById(elementId));
+                gaugeCharts[elementId] = chart;
+                chart.draw(data, options);
+            }
+        }
+
+        /**
+         * Helper function to format numbers as currency, divided by 1000 for size.
+         * Unit is displayed as "Rial", and decimal places are limited to 3.
+         * @param {number} number - The large number (in Rial).
+         * @returns {string} The formatted number followed by the "ریال" unit.
+         */
+        function formatCurrency(number) {
+            if (typeof number !== 'number') number = parseFloat(number) || 0;
+            
+            // 1. Divide by 1000 to keep the displayed number smaller
+            const dividedNumber = number / 1000;
+            
+            // 2. Format with Persian locale for grouping, limiting to max 3 decimals
+            let formatted = dividedNumber.toLocaleString('fa-IR', {
+                 minimumFractionDigits: 0, 
+                 maximumFractionDigits: 3, // Limited to 3 as requested
+                 useGrouping: true 
+             });
+            
+            // 3. Change unit to "ریال" as requested by the user
+            return formatted + ' ریال'; 
+        }
+        
+        /**
+         * Helper function for simple number formatting (with comma).
+         */
+        function formatNumber(number) {
+             if (typeof number !== 'number') number = parseInt(number) || 0;
+            return number.toLocaleString('fa-IR');
+        }
+
+    </script>
+</body>
+</html>
