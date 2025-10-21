@@ -36,7 +36,7 @@
 <body>
 
     <div class="container">
-        <h1 class="header" id="main-header">در حال استخراج آدرس RSS...</h1>
+        <h1 class="header" id="main-header"> ... </h1>
         <div id="rss-feed" class="news-grid">
             <p class="loading-message">در حال بارگذاری اخبار...</p>
         </div>
@@ -45,7 +45,7 @@
     <script>
         // *******************************************
         // !!! نکته مهم: این آدرس را با Web App URL خود که از Google Apps Script گرفتید، جایگزین کنید.
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVQsV5ZqQrep4uPOxVyZiPvk2BNVqBua2g22iqFPU8lo7JlMQfNnHQRTFNnuIGKQDR/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzsxWwsm860Xp6TMvN1ixpQulmedHOoaASndfknNGtauGM14N3pZrannf5pANrqo-PJ/exec';
         // *******************************************
 
         // تابع اصلی فراخوانی RSS از طریق سرویس واسط rss2json.com
@@ -122,7 +122,6 @@
             }
 
             // --- مرحله ۱: اتصال به Web App برای دریافت آدرس RSS ---
-            $('#main-header').text(`در حال استخراج آدرس RSS از شیت برای ${cellId}...`);
             
             $.ajax({
                 url: GOOGLE_SCRIPT_URL + '?id=' + cellId,
