@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمایشگر اخبار RSS پویا</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif; 
+            background-color: #f0f2f5; 
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 960px; 
+            margin: 0 auto;
+            padding: 0 15px; 
+        }
+        .header {
+            text-align: center;
+            color: #2c3e50; 
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 4px solid #4a90e2; 
+            font-weight: 700; 
+            font-size: 2.2em;
+        }
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 25px; 
+        }
+        .news-item {
+            background-color: #ffffff;
+            border-radius: 12px; 
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); 
+            transition: transform 0.3s ease, box-shadow 0.3s ease; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column; 
+        }
+        .news-item:hover {
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); 
+        }
+        .news-item a {
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            height: 100%; 
+        }
+        .news-image-container {
+            width: 100%;
+            height: 200px; 
+            overflow: hidden;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        .news-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            transition: transform 0.3s ease; 
+        }
+        .news-item:hover .news-image {
+            transform: scale(1.05); 
+        }
+        .news-content {
+            padding: 20px;
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+        }
+        .news-title {
+            font-size: 1.35em;
+            color: #1a73e8; 
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        .news-pubdate {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 8px;
+            margin-top: auto; 
+        }
+        .news-description {
+            font-size: 0.95em;
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 15px; 
+        }
+        .loading-message {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            padding: 50px;
+            grid-column: 1 / -1; 
+        }
+        .error-message {
+            text-align: center;
+            font-size: 1.2em;
+            color: #d9534f;
+            padding: 50px;
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .news-grid {
+                grid-template-columns: 1fr; 
+            }
+            .header {
+                font-size: 1.8em;
+            }
+            .news-image-container {
+                height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="header" id="main-header">جدیدترین اخبار</h1>
+        <div id="rss-feed" class="news-grid">
+            <p class="loading-message">در حال بارگذاری اخبار...</p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            let rawRssUrl = urlParams.get('id'); 
+            
+            let rssUrl = null;
+            if (rawRssUrl) {
+                try {
+                    // تلاش برای دیکد کردن آدرس (برای تبدیل %3F و %2F)
+                    rssUrl = decodeURIComponent(rawRssUrl); 
+                } catch (e) {
+                    // در صورت بروز خطا، از مقدار خام استفاده می کنیم
+                    rssUrl = rawRssUrl;
+                }
+            }
+            
+            // عیب‌یابی: چک کردن نهایی آدرس
+            if (!rssUrl || !rssUrl.startsWith('http')) {
+                $('#rss-feed').html('<p class="error-message">❌ لطفاً آدرس RSS معتبر و کامل (شامل http یا https) را به عنوان پارامتر "?id=" در آدرس وارد کنید.<br>برای استفاده از آدرس‌های دارای علامت سوال (مثل این لینک)، آن را **دوبار کدگذاری** کنید.</p>');
+                $('#main-header').text('خطا: آدرس RSS معتبر نیست.');
+                return;
+            }
+
+            // آدرس نهایی واسط RSS-to-JSON (آدرس RSS باید دوباره encode شود)
+            const proxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
+
+            $('#main-header').text('در حال بارگذاری اخبار...'); // موقتاً تغییر هدر
+
+            $.ajax({
+                url: proxyUrl,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    $('#rss-feed').empty(); 
+
+                    if (data.status === 'ok' && data.items.length > 0) {
+                        
+                        // به‌روز رسانی تیتر بر اساس عنوان فید 
+                        if (data.feed.title) {
+                            $('#main-header').text(data.feed.title);
+                        } else {
+                            $('#main-header').text('جدیدترین اخبار');
+                        }
+
+                        data.items.forEach(function(item) {
+                            let imageUrl = '';
+
+                            // 1. استخراج تصویر از enclosure (اولویت اول)
+                            if (item.enclosure && item.enclosure.link) {
+                                imageUrl = item.enclosure.link;
+                            } else {
+                                // 2. استخراج تصویر از content/description
+                                const content = item.content || item.description;
+                                const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
+                                if (imgMatch && imgMatch[1]) {
+                                    imageUrl = imgMatch[1];
+                                }
+                            }
+                            
+                            // پاک کردن تگ های HTML از توضیحات
+                            const cleanDescription = item.description ? item.description.replace(/(<([^>]+)>)/gi, "").trim() : '';
+
+                            const newsHtml = `
+                                <div class="news-item">
+                                    <a href="${item.link}" target="_blank">
+                                        ${imageUrl ? `<div class="news-image-container"><img src="${imageUrl}" class="news-image" alt="${item.title}"></div>` : ''}
+                                        <div class="news-content">
+                                            <h2 class="news-title">${item.title}</h2>
+                                            <p class="news-description">${cleanDescription}</p>
+                                            <p class="news-pubdate">تاریخ انتشار: ${new Date(item.pubDate).toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                        </div>
+                                    </a>
+                                </div>
+                            `;
+                            $('#rss-feed').append(newsHtml);
+                        });
+                    } else {
+                        $('#rss-feed').html('<p class="error-message">⚠️ متاسفانه، اطلاعاتی از فید خبری دریافت نشد یا فید خالی است. آدرس RSS ممکن است نامعتبر باشد.</p>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#rss-feed').html('<p class="error-message">❌ خطا در برقراری ارتباط با سرور. اگر فایل را به صورت محلی (file://) اجرا می‌کنید، این خطا طبیعی است. لطفاً آن را روی یک هاست قرار دهید.</p>');
+                    $('#main-header').text('خطا در دریافت اخبار');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
