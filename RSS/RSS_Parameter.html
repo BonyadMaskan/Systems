@@ -3,174 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نمایشگر اخبار RSS پویا</title>
+    <title id="page-title">نمایشگر اخبار RSS پویا</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
-        body {
-            font-family: 'Vazirmatn', sans-serif; 
-            background-color: #f0f2f5; 
-            direction: rtl;
-            text-align: right;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 960px; 
-            margin: 0 auto;
-            padding: 0 15px; 
-        }
-        .header {
-            text-align: center;
-            color: #2c3e50; 
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 4px solid #4a90e2; 
-            font-weight: 700; 
-            font-size: 2.2em;
-        }
-        .news-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-            gap: 25px; 
-        }
-        .news-item {
-            background-color: #ffffff;
-            border-radius: 12px; 
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); 
-            transition: transform 0.3s ease, box-shadow 0.3s ease; 
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column; 
-        }
-        .news-item:hover {
-            transform: translateY(-5px); 
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); 
-        }
-        .news-item a {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            height: 100%; 
-        }
-        .news-image-container {
-            width: 100%;
-            height: 200px; 
-            overflow: hidden;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
-        .news-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; 
-            transition: transform 0.3s ease; 
-        }
-        .news-item:hover .news-image {
-            transform: scale(1.05); 
-        }
-        .news-content {
-            padding: 20px;
-            flex-grow: 1; 
-            display: flex;
-            flex-direction: column;
-        }
-        .news-title {
-            font-size: 1.35em;
-            color: #1a73e8; 
-            margin-top: 0;
-            margin-bottom: 12px;
-            font-weight: 700;
-            line-height: 1.4;
-        }
-        .news-pubdate {
-            font-size: 0.85em;
-            color: #888;
-            margin-bottom: 10px;
-            border-bottom: 1px dashed #eee;
-            padding-bottom: 8px;
-            margin-top: auto; 
-        }
-        .news-description {
-            font-size: 0.95em;
-            color: #555;
-            margin-top: 0;
-            margin-bottom: 15px; 
-        }
-        .loading-message {
-            text-align: center;
-            font-size: 1.2em;
-            color: #666;
-            padding: 50px;
-            grid-column: 1 / -1; 
-        }
-        .error-message {
-            text-align: center;
-            font-size: 1.2em;
-            color: #d9534f;
-            padding: 50px;
-            grid-column: 1 / -1;
-        }
-
+        /* (کدهای CSS اینجا قرار می‌گیرند، که عیناً مثل کدهای قبلی هستند) */
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f0f2f5; direction: rtl; text-align: right; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
+        .container { max-width: 960px; margin: 0 auto; padding: 0 15px; }
+        .header { text-align: center; color: #2c3e50; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 4px solid #4a90e2; font-weight: 700; font-size: 2.2em; }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .news-item { background-color: #ffffff; border-radius: 12px; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; overflow: hidden; display: flex; flex-direction: column; }
+        .news-item:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+        .news-item a { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
+        .news-image-container { width: 100%; height: 200px; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .news-image { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+        .news-item:hover .news-image { transform: scale(1.05); }
+        .news-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .news-title { font-size: 1.35em; color: #1a73e8; margin-top: 0; margin-bottom: 12px; font-weight: 700; line-height: 1.4; }
+        .news-pubdate { font-size: 0.85em; color: #888; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 8px; margin-top: auto; }
+        .news-description { font-size: 0.95em; color: #555; margin-top: 0; margin-bottom: 15px; }
+        .loading-message { text-align: center; font-size: 1.2em; color: #666; padding: 50px; grid-column: 1 / -1; }
+        .error-message { text-align: center; font-size: 1.2em; color: #d9534f; padding: 50px; grid-column: 1 / -1; }
         @media (max-width: 768px) {
-            .news-grid {
-                grid-template-columns: 1fr; 
-            }
-            .header {
-                font-size: 1.8em;
-            }
-            .news-image-container {
-                height: 180px;
-            }
+            .news-grid { grid-template-columns: 1fr; }
+            .header { font-size: 1.8em; }
+            .news-image-container { height: 180px; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1 class="header" id="main-header">جدیدترین اخبار</h1>
+        <h1 class="header" id="main-header">در حال استخراج آدرس RSS از Google Sheet...</h1>
         <div id="rss-feed" class="news-grid">
             <p class="loading-message">در حال بارگذاری اخبار...</p>
         </div>
     </div>
     
     <script>
-        $(document).ready(function() {
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            const baseUrl = urlParams.get('base');
-            const queryText = urlParams.get('query');
-            const hasKw = urlParams.get('kw'); 
+        // --- توابع کمکی ---
 
-            let rssUrl = null;
-
-            if (baseUrl && queryText && hasKw) {
-                // ترکیب آدرس: base + ?kw= + عبارت جستجو (که مرورگر خودکار کدگذاری کرده است)
-                rssUrl = baseUrl + "?kw=" + queryText;
-            } else if (baseUrl) {
-                 // اگر فقط base وجود دارد، فرض می کنیم یک آدرس RSS ساده است.
-                 rssUrl = baseUrl;
+        // تبدیل حرف ستون (مثلا P) به شماره ستون (مثلا 15) (A=0, B=1, ...)
+        function colLetterToNumber(col) {
+            col = col.toUpperCase();
+            let num = 0;
+            for (let i = 0; i < col.length; i++) {
+                num = num * 26 + (col.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
             }
-
-            // عیب‌یابی: چک کردن نهایی آدرس
-            if (!rssUrl || !rssUrl.startsWith('http')) {
-                $('#rss-feed').html('<p class="error-message">❌ لطفاً آدرس RSS معتبر را وارد کنید. مثال: <code>?base=https://mehrnews.com/rss&query=آرش لهوني&kw=1</code></p>');
-                $('#main-header').text('خطا: آدرس RSS معتبر نیست.');
-                return;
-            }
-
-            // آدرس نهایی واسط RSS-to-JSON
-            // باید آدرس RSS نهایی را یکبار دیگر encode کنیم تا در URL واسط مشکلی پیش نیاید.
+            return num - 1; // چون شمارش از 0 شروع می شود
+        }
+        
+        // تابع اصلی فراخوانی RSS
+        function loadRssFeed(rssUrl, sheetDetails) {
             const proxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
-
-            $('#main-header').text('در حال بارگذاری اخبار...');
 
             $.ajax({
                 url: proxyUrl,
@@ -178,15 +66,12 @@
                 dataType: 'json',
                 success: function(data) {
                     $('#rss-feed').empty(); 
-
                     if (data.status === 'ok' && data.items.length > 0) {
                         
-                        if (data.feed.title) {
-                            $('#main-header').text(data.feed.title);
-                        } else {
-                            $('#main-header').text('جدیدترین اخبار');
-                        }
-
+                        const title = data.feed.title || `اخبار دریافتی از ${sheetDetails}`;
+                        $('#main-header').text(title);
+                        $('#page-title').text(title);
+                        
                         data.items.forEach(function(item) {
                             let imageUrl = '';
                             if (item.enclosure && item.enclosure.link) {
@@ -217,12 +102,98 @@
                         });
                     } else {
                         $('#rss-feed').html('<p class="error-message">⚠️ متاسفانه، اطلاعاتی از فید خبری دریافت نشد یا فید خالی است.</p>');
-                        $('#main-header').text('خطا: فید خالی است');
+                        $('#main-header').text(`خطا: فید خالی یا نامعتبر (${sheetDetails})`);
                     }
                 },
                 error: function(xhr, status, error) {
-                    $('#rss-feed').html('<p class="error-message">❌ خطا در برقراری ارتباط با سرویس واسط. لطفاً آدرس RSS و پارامترها را بررسی کنید.</p>');
-                    $('#main-header').text('خطا در دریافت اخبار');
+                    $('#rss-feed').html('<p class="error-message">❌ خطا در برقراری ارتباط با سرویس واسط RSS. لطفاً مطمئن شوید آدرس RSS استخراج شده صحیح است.</p>');
+                    $('#main-header').text(`خطا در دریافت اخبار (${sheetDetails})`);
+                }
+            });
+        }
+        // --- پایان توابع کمکی ---
+
+
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cellId = urlParams.get('id'); // مثلا P12
+
+            if (!cellId || cellId.length < 2) {
+                $('#rss-feed').html('<p class="error-message">❌ لطفاً پارامتر id را به شکل "ستون و سطر" (مثلاً P12) وارد کنید.</p>');
+                $('#main-header').text('خطا: ورودی نامعتبر');
+                return;
+            }
+
+            // جدا کردن حرف ستون و شماره سطر
+            const colLetterMatch = cellId.match(/[A-Z]+/i);
+            const rowNumberMatch = cellId.match(/\d+/);
+
+            if (!colLetterMatch || !rowNumberMatch) {
+                $('#rss-feed').html('<p class="error-message">❌ فرمت پارامتر id باید شامل حرف ستون و عدد سطر باشد (مثلاً P12).</p>');
+                $('#main-header').text('خطا: فرمت نامعتبر');
+                return;
+            }
+
+            const colLetter = colLetterMatch[0]; // P
+            const rowIndex = parseInt(rowNumberMatch[0]); // 12
+            
+            // --- اطلاعات گوگل شیت ---
+            const SHEET_ID = '1X9xu-EZ-ZQLLqd3tj_W9qZrBJaFoMhjbBZoSHolKMgc';
+            const SHEET_NAME = 'GovernorInfo'; // نام شیت شما
+            
+            // URL برای دریافت داده‌های شیت به صورت JSON (نیاز به Public بودن شیت)
+            const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+            
+            // --- مرحله ۱: خواندن داده‌ها از گوگل شیت ---
+            $.ajax({
+                url: sheetUrl,
+                dataType: 'text', // دریافت به صورت متن خام
+                success: function(data) {
+                    try {
+                        // حذف wrapper و تبدیل به JSON
+                        const jsonText = data.substring(data.indexOf('{'), data.lastIndexOf('}') + 1);
+                        const jsonData = JSON.parse(jsonText);
+                        const rows = jsonData.table.rows;
+
+                        if (rowIndex > rows.length) {
+                             $('#rss-feed').html(`<p class="error-message">❌ سطر ${rowIndex} در شیت وجود ندارد. (تعداد کل سطرها: ${rows.length})</p>`);
+                             $('#main-header').text('خطا در یافتن سطر');
+                             return;
+                        }
+
+                        // محاسبه شماره ستون (ستون P=15)
+                        const colIndex = colLetterToNumber(colLetter); 
+                        
+                        // ردیف‌ها از سطر 1 شروع می‌شوند، اما در JSON از 0.
+                        // اگر rowIndex=12 باشد، ما row[11] را می‌خواهیم.
+                        const targetRow = rows[rowIndex - 1]; // -1 چون JSON از 0 شروع می شود
+                        
+                        if (!targetRow || !targetRow.c[colIndex] || !targetRow.c[colIndex].v) {
+                            $('#rss-feed').html(`<p class="error-message">❌ آدرس RSS در سلول ${colLetter}${rowIndex} خالی است.</p>`);
+                            $('#main-header').text('خطا در یافتن آدرس');
+                            return;
+                        }
+
+                        // استخراج آدرس RSS
+                        const rssLink = targetRow.c[colIndex].v.trim(); 
+                        
+                        if (!rssLink.startsWith('http')) {
+                            $('#rss-feed').html(`<p class="error-message">❌ محتوای سلول ${colLetter}${rowIndex} آدرس معتبری نیست: ${rssLink}</p>`);
+                            $('#main-header').text('خطا در آدرس RSS');
+                            return;
+                        }
+
+                        // --- مرحله ۲: فراخوانی RSS با آدرس استخراج شده ---
+                        loadRssFeed(rssLink, `${colLetter}${rowIndex}`);
+                        
+                    } catch (e) {
+                        $('#rss-feed').html('<p class="error-message">❌ خطای داخلی در پردازش JSON. لطفاً مطمئن شوید شیت به صورت Public درآمده است.</p>');
+                        console.error("JSON Parsing Error:", e);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#rss-feed').html('<p class="error-message">❌ خطا در اتصال به Google Sheets. اتصال اینترنت خود و تنظیمات اشتراک‌گذاری شیت را بررسی کنید.</p>');
+                    console.error("Sheet AJAX Error:", status, error);
                 }
             });
         });
