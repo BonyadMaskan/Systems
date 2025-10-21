@@ -10,7 +10,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
-        /* (کدهای CSS اینجا قرار می‌گیرند، که عیناً مثل کدهای قبلی هستند) */
         body { font-family: 'Vazirmatn', sans-serif; background-color: #f0f2f5; direction: rtl; text-align: right; margin: 0; padding: 20px; color: #333; line-height: 1.6; }
         .container { max-width: 960px; margin: 0 auto; padding: 0 15px; }
         .header { text-align: center; color: #2c3e50; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 4px solid #4a90e2; font-weight: 700; font-size: 2.2em; }
@@ -37,26 +36,19 @@
 <body>
 
     <div class="container">
-        <h1 class="header" id="main-header">در حال استخراج آدرس RSS از Google Sheet...</h1>
+        <h1 class="header" id="main-header">در حال استخراج آدرس RSS...</h1>
         <div id="rss-feed" class="news-grid">
             <p class="loading-message">در حال بارگذاری اخبار...</p>
         </div>
     </div>
     
     <script>
-        // --- توابع کمکی ---
+        // *******************************************
+        // !!! نکته مهم: این آدرس را با Web App URL خود که از Google Apps Script گرفتید، جایگزین کنید.
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJ53z2bmAv-9bqjv8JKzo0y1HhLU8QPuXL02w1uRd_al3Xz0Dyx0jDeF7QOyW3bYw5/exec';
+        // *******************************************
 
-        // تبدیل حرف ستون (مثلا P) به شماره ستون (مثلا 15) (A=0, B=1, ...)
-        function colLetterToNumber(col) {
-            col = col.toUpperCase();
-            let num = 0;
-            for (let i = 0; i < col.length; i++) {
-                num = num * 26 + (col.charCodeAt(i) - 'A'.charCodeAt(0) + 1);
-            }
-            return num - 1; // چون شمارش از 0 شروع می شود
-        }
-        
-        // تابع اصلی فراخوانی RSS
+        // تابع اصلی فراخوانی RSS از طریق سرویس واسط rss2json.com
         function loadRssFeed(rssUrl, sheetDetails) {
             const proxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
 
@@ -68,19 +60,19 @@
                     $('#rss-feed').empty(); 
                     if (data.status === 'ok' && data.items.length > 0) {
                         
-                        const title = data.feed.title || `اخبار دریافتی از ${sheetDetails}`;
+                        const title = data.feed.title || `اخبار دریافتی برای ${sheetDetails}`;
                         $('#main-header').text(title);
                         $('#page-title').text(title);
                         
                         data.items.forEach(function(item) {
                             let imageUrl = '';
-                            if (item.enclosure && item.enclosure.link) {
-                                imageUrl = item.enclosure.link;
+                            if (item.enclosure && item.enclosure.link) { 
+                                imageUrl = item.enclosure.link; 
                             } else {
                                 const content = item.content || item.description;
                                 const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
-                                if (imgMatch && imgMatch[1]) {
-                                    imageUrl = imgMatch[1];
+                                if (imgMatch && imgMatch[1]) { 
+                                    imageUrl = imgMatch[1]; 
                                 }
                             }
                             
@@ -106,94 +98,48 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    $('#rss-feed').html('<p class="error-message">❌ خطا در برقراری ارتباط با سرویس واسط RSS. لطفاً مطمئن شوید آدرس RSS استخراج شده صحیح است.</p>');
+                    $('#rss-feed').html('<p class="error-message">❌ خطا در برقراری ارتباط با سرویس واسط RSS (rss2json.com). لطفاً مطمئن شوید آدرس RSS استخراج شده صحیح است.</p>');
                     $('#main-header').text(`خطا در دریافت اخبار (${sheetDetails})`);
                 }
             });
         }
-        // --- پایان توابع کمکی ---
 
-
+        // تابع اصلی برای اتصال به Google Script و شروع کار
         $(document).ready(function() {
+            if (GOOGLE_SCRIPT_URL === 'YOUR_WEB_APP_URL_HERE') {
+                $('#rss-feed').html('<p class="error-message">❌ آدرس GOOGLE_SCRIPT_URL تنظیم نشده است. لطفاً آن را در کد جاوا اسکریپت جایگزین کنید.</p>');
+                $('#main-header').text('خطای تنظیمات');
+                return;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const cellId = urlParams.get('id'); // مثلا P12
 
-            if (!cellId || cellId.length < 2) {
-                $('#rss-feed').html('<p class="error-message">❌ لطفاً پارامتر id را به شکل "ستون و سطر" (مثلاً P12) وارد کنید.</p>');
+            if (!cellId) {
+                $('#rss-feed').html('<p class="error-message">❌ لطفاً پارامتر id (مثلاً P12) را در آدرس وارد کنید. مثال: <code>?id=P12</code></p>');
                 $('#main-header').text('خطا: ورودی نامعتبر');
                 return;
             }
 
-            // جدا کردن حرف ستون و شماره سطر
-            const colLetterMatch = cellId.match(/[A-Z]+/i);
-            const rowNumberMatch = cellId.match(/\d+/);
-
-            if (!colLetterMatch || !rowNumberMatch) {
-                $('#rss-feed').html('<p class="error-message">❌ فرمت پارامتر id باید شامل حرف ستون و عدد سطر باشد (مثلاً P12).</p>');
-                $('#main-header').text('خطا: فرمت نامعتبر');
-                return;
-            }
-
-            const colLetter = colLetterMatch[0]; // P
-            const rowIndex = parseInt(rowNumberMatch[0]); // 12
+            // --- مرحله ۱: اتصال به Web App برای دریافت آدرس RSS ---
+            $('#main-header').text(`در حال استخراج آدرس RSS از شیت برای ${cellId}...`);
             
-            // --- اطلاعات گوگل شیت ---
-            const SHEET_ID = '1X9xu-EZ-ZQLLqd3tj_W9qZrBJaFoMhjbBZoSHolKMgc';
-            const SHEET_NAME = 'GovernorInfo'; // نام شیت شما
-            
-            // URL برای دریافت داده‌های شیت به صورت JSON (نیاز به Public بودن شیت)
-            const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-            
-            // --- مرحله ۱: خواندن داده‌ها از گوگل شیت ---
             $.ajax({
-                url: sheetUrl,
-                dataType: 'text', // دریافت به صورت متن خام
-                success: function(data) {
-                    try {
-                        // حذف wrapper و تبدیل به JSON
-                        const jsonText = data.substring(data.indexOf('{'), data.lastIndexOf('}') + 1);
-                        const jsonData = JSON.parse(jsonText);
-                        const rows = jsonData.table.rows;
-
-                        if (rowIndex > rows.length) {
-                             $('#rss-feed').html(`<p class="error-message">❌ سطر ${rowIndex} در شیت وجود ندارد. (تعداد کل سطرها: ${rows.length})</p>`);
-                             $('#main-header').text('خطا در یافتن سطر');
-                             return;
-                        }
-
-                        // محاسبه شماره ستون (ستون P=15)
-                        const colIndex = colLetterToNumber(colLetter); 
-                        
-                        // ردیف‌ها از سطر 1 شروع می‌شوند، اما در JSON از 0.
-                        // اگر rowIndex=12 باشد، ما row[11] را می‌خواهیم.
-                        const targetRow = rows[rowIndex - 1]; // -1 چون JSON از 0 شروع می شود
-                        
-                        if (!targetRow || !targetRow.c[colIndex] || !targetRow.c[colIndex].v) {
-                            $('#rss-feed').html(`<p class="error-message">❌ آدرس RSS در سلول ${colLetter}${rowIndex} خالی است.</p>`);
-                            $('#main-header').text('خطا در یافتن آدرس');
-                            return;
-                        }
-
-                        // استخراج آدرس RSS
-                        const rssLink = targetRow.c[colIndex].v.trim(); 
-                        
-                        if (!rssLink.startsWith('http')) {
-                            $('#rss-feed').html(`<p class="error-message">❌ محتوای سلول ${colLetter}${rowIndex} آدرس معتبری نیست: ${rssLink}</p>`);
-                            $('#main-header').text('خطا در آدرس RSS');
-                            return;
-                        }
-
+                url: GOOGLE_SCRIPT_URL + '?id=' + cellId,
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'ok' && response.rssUrl) {
                         // --- مرحله ۲: فراخوانی RSS با آدرس استخراج شده ---
-                        loadRssFeed(rssLink, `${colLetter}${rowIndex}`);
-                        
-                    } catch (e) {
-                        $('#rss-feed').html('<p class="error-message">❌ خطای داخلی در پردازش JSON. لطفاً مطمئن شوید شیت به صورت Public درآمده است.</p>');
-                        console.error("JSON Parsing Error:", e);
+                        loadRssFeed(response.rssUrl, cellId);
+                    } else {
+                        $('#rss-feed').html(`<p class="error-message">❌ خطا از سمت Google Sheet: ${response.message || 'آدرس RSS پیدا نشد یا نامعتبر است.'}</p>`);
+                        $('#main-header').text(`خطا در شیت (${cellId})`);
                     }
                 },
                 error: function(xhr, status, error) {
-                    $('#rss-feed').html('<p class="error-message">❌ خطا در اتصال به Google Sheets. اتصال اینترنت خود و تنظیمات اشتراک‌گذاری شیت را بررسی کنید.</p>');
-                    console.error("Sheet AJAX Error:", status, error);
+                    $('#rss-feed').html('<p class="error-message">❌ خطا در اتصال به Google Apps Script. (بررسی Web App URL و وضعیت دیپلوی)</p>');
+                    $('#main-header').text('خطا در اتصال به API');
                 }
             });
         });
