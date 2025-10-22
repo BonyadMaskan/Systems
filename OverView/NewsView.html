@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل اجرایی رصد رسانه بنیاد مسکن</title>
+    <!-- Load Vazirmatn font for professional RTL display -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f4f6f9;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plugin for displaying data labels on charts (like percentages on pie charts) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-8xl mx-auto space-y-10">
+
+        <!-- Executive Header and Filters -->
+        <header class="bg-indigo-700 p-6 rounded-3xl card-shadow border-t-8 border-yellow-400">
+            <h1 class="text-3xl font-extrabold text-white text-center mb-4 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 ml-3 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.293 7.293a1 1 0 011.414 0L10 9.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                پنل اجرایی رصد و تحلیل رسانه‌ای بنیاد مسکن
+            </h1>
+            <div class="flex flex-wrap justify-center space-x-4 space-x-reverse text-sm text-gray-200">
+                <span>📅 دوره گزارش: ماه جاری (شهریور)</span>
+                <span> | </span>
+                <span>🕰️ آخرین به‌روزرسانی: ۰۹:۰۰ صبح</span>
+                <span> | </span>
+                <span>📌 وضعیت: **هشدار سطح زرد** (تأخیر در پاسخگویی)</span>
+            </div>
+        </header>
+
+        <!-- Section 1: Executive Overview & Crisis KPIs -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۱. شاخص‌های حیاتی و وضعیت بحران</h2>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-6 gap-6">
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-indigo-500 text-center">
+                    <p class="text-sm text-gray-500">حجم پوشش کل</p>
+                    <p class="text-3xl font-extrabold text-indigo-700 mt-1">۱,۸۵۰</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-green-500 text-center">
+                    <p class="text-sm text-gray-500">احساسات مثبت (سهم)</p>
+                    <p class="text-3xl font-extrabold text-green-600 mt-1">۶۸٪</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-red-500 text-center">
+                    <p class="text-sm text-gray-500">اخبار انتقادی جدی</p>
+                    <p class="text-3xl font-extrabold text-red-600 mt-1">۱۲۰</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-yellow-500 text-center">
+                    <p class="text-sm text-gray-500">امتیاز کلی رضایت (از ۱۰۰)</p>
+                    <p class="text-3xl font-extrabold text-yellow-600 mt-1">۸۲</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-purple-500 text-center">
+                    <p class="text-sm text-gray-500">نرخ پاسخگویی رسمی</p>
+                    <p class="text-3xl font-extrabold text-purple-600 mt-1">۷۵٪</p>
+                </div>
+                 <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-gray-500 text-center">
+                    <p class="text-sm text-gray-500">متوسط زمان پاسخ (ساعت)</p>
+                    <p class="text-3xl font-extrabold text-gray-700 mt-1">۱۴.۵</p>
+                </div>
+            </div>
+
+            <!-- Sentiment Trend Chart - Comparison -->
+            <div class="bg-white p-6 rounded-2xl card-shadow">
+                <h3 class="text-xl font-semibold mb-3">📈 روند مقایسه‌ای احساسات (ماه جاری در مقابل ماه قبل)</h3>
+                <div class="relative h-96">
+                    <canvas id="sentimentComparison"></canvas>
+                </div>
+                <p class="text-sm text-gray-500 mt-3 text-left">رصد دقیق تغییرات احساسات نسبت به دوره زمانی گذشته</p>
+            </div>
+        </section>
+
+        <!-- Section 2: Deep Topic Analysis and Sentiment Drivers -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۲. تحلیل عمیق موضوعی و محرک‌های احساسات</h2>
+            
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Sentiment by Topic (Stacked Bar) -->
+                <div class="bg-white p-6 rounded-2xl card-shadow lg:col-span-2">
+                    <h3 class="text-xl font-semibold mb-3">📊 سهم احساسات در هر حوزه فعالیت (پوشش خبری)</h3>
+                    <div class="relative h-96">
+                        <canvas id="sentimentByTopic"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-3 text-left">مشخص کردن نقاط قوت (بالاترین سبز) و نقاط ریسک (بالاترین قرمز)</p>
+                </div>
+
+                <!-- Sentiment Drivers (Top Keywords) -->
+                <div class="bg-white p-6 rounded-2xl card-shadow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3">⭐ محرک‌های کلیدی احساسات</h3>
+                        
+                        <h4 class="font-bold text-green-600 mt-4 mb-2">✅ ۵ کلمه/عبارت با بار مثبت بالا</h4>
+                        <ul class="text-sm space-y-1">
+                            <li class="p-2 bg-green-50 rounded-lg">۱. تأمین زمین (۳۵۰ بار تکرار)</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۲. تحویل بموقع</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۳. مقاوم‌سازی</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۴. همکاری استانداری</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۵. پیشرفت فیزیکی</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h4 class="font-bold text-red-600 mb-2">⚠️ ۵ کلمه/عبارت با بار منفی بالا</h4>
+                        <ul class="text-sm space-y-1">
+                            <li class="p-2 bg-red-50 rounded-lg">۱. افزایش قیمت مصالح (۵۲۰ بار تکرار)</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۲. تأخیر در پرداخت</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۳. بدهی پیمانکاران</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۴. تسهیلات بانکی</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۵. بوروکراسی</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Media Channels, Institutions & Geography -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۳. تحلیل کانال‌های رسانه‌ای و جغرافیایی</h2>
+            
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Media Channel Share (Doughnut) -->
+                <div class="bg-white p-6 rounded-2xl card-shadow flex flex-col justify-center items-center">
+                    <h3 class="text-xl font-semibold mb-5 text-center">🌐 سهم پوشش رسانه‌ای بر اساس کانال</h3>
+                    <div class="relative h-64 w-64">
+                         <canvas id="mediaShare"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">تمرکز بیشتر بر خبرگزاری‌های داخلی</p>
+                </div>
+
+                <!-- Institution Activity (Horizontal Bar) -->
+                <div class="bg-white p-6 rounded-2xl card-shadow lg:col-span-2">
+                    <h3 class="text-xl font-semibold mb-3">🏛️ میزان تعامل و مشارکت نهادهای اجرایی (بر حسب تعداد خبر)</h3>
+                    <div class="relative h-96">
+                        <canvas id="institutionActivity"></canvas>
+                    </div>
+                     <p class="text-sm text-gray-500 mt-3 text-left">نهادهای دارای بیشترین سهم خبری در ارتباط با بنیاد</p>
+                </div>
+            </div>
+
+            <!-- Regional Coverage Hotlist -->
+            <div class="bg-white p-6 rounded-2xl card-shadow">
+                <h3 class="text-xl font-semibold mb-3">📍 استان‌های دارای بالاترین حجم پوشش رسانه‌ای</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-red-500">
+                        <p class="text-sm text-red-700 font-bold">خوزستان</p>
+                        <p class="text-xs text-gray-600">۸۰ خبر (۶۵٪ منفی)</p>
+                    </div>
+                     <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-blue-500">
+                        <p class="text-sm text-blue-700 font-bold">اصفهان</p>
+                        <p class="text-xs text-gray-600">۵۵ خبر (۸۰٪ مثبت)</p>
+                    </div>
+                     <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-orange-500">
+                        <p class="text-sm text-orange-700 font-bold">مازندران</p>
+                        <p class="text-xs text-gray-600">۴۷ خبر (۵۰٪ خنثی)</p>
+                    </div>
+                     <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-green-500">
+                        <p class="text-sm text-green-700 font-bold">کرمانشاه</p>
+                        <p class="text-xs text-gray-600">۴۲ خبر (۸۵٪ مثبت)</p>
+                    </div>
+                     <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-red-500">
+                        <p class="text-sm text-red-700 font-bold">آذربایجان شرقی</p>
+                        <p class="text-xs text-gray-600">۴۵ خبر (۵۵٪ منفی)</p>
+                    </div>
+                     <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-blue-500">
+                        <p class="text-sm text-blue-700 font-bold">تهران</p>
+                        <p class="text-xs text-gray-600">۶۰ خبر (۶۰٪ مثبت)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Social Media Engagement -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۴. رصد و تحلیل فضای مجازی (Social Media)</h2>
+            
+            <div class="grid lg:grid-cols-2 gap-6">
+                <!-- Social Engagement vs Sentiment (Line Chart) -->
+                <div class="bg-white p-6 rounded-2xl card-shadow">
+                    <h3 class="text-xl font-semibold mb-3">💬 مقایسه نرخ تعامل و احساسات در فضای مجازی</h3>
+                    <div class="relative h-96">
+                        <canvas id="socialEngagement"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-3 text-left">بررسی همبستگی بین تعداد لایک/کامنت‌ها و جهت‌گیری احساسی کاربران</p>
+                </div>
+
+                <!-- Key Social Metrics -->
+                <div class="bg-white p-6 rounded-2xl card-shadow">
+                    <h3 class="text-xl font-semibold mb-3">🚀 شاخص‌های کلیدی شبکه‌های اجتماعی</h3>
+                    <div class="space-y-4">
+                         <div class="p-4 bg-yellow-50 rounded-xl border-l-4 border-yellow-500">
+                            <p class="text-base font-semibold text-gray-800">پربازدیدترین موضوع</p>
+                            <p class="text-sm text-gray-600">افتتاح پروژه ۴۰۰ واحدی کرمانشاه در اینستاگرام (+۵۶ هزار بازدید)</p>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                            <p class="text-base font-semibold text-gray-800">حجم تعامل (Engagement)</p>
+                            <p class="text-sm text-gray-600">۸۹,۰۰۰ لایک و کامنت در ماه جاری (+۱۲٪ رشد نسبت به ماه قبل)</p>
+                        </div>
+                        <div class="p-4 bg-red-50 rounded-xl border-l-4 border-red-500">
+                            <p class="text-base font-semibold text-gray-800">کانال پرانتقاد</p>
+                            <p class="text-sm text-gray-600">کانال‌های تلگرامی خبری (۴۰٪ سهم انتقادات، تمرکز بر تسهیلات)</p>
+                        </div>
+                         <div class="p-4 bg-green-50 rounded-xl border-l-4 border-green-500">
+                            <p class="text-base font-semibold text-gray-800">نفوذ هشتگ</p>
+                            <p class="text-sm text-gray-600">#مسکن_روستایی (با ۱۳ هزار استفاده) و #بنیاد_مسکن_موفق</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tools & Action Bar -->
+        <div class="flex flex-wrap justify-around items-center bg-white p-4 rounded-2xl card-shadow border-t-4 border-indigo-600 mt-8">
+            <button class="bg-indigo-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-indigo-700 transition shadow-md flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.691-.921 1.99 0l3.056 9.41a1 1 0 01-.95 1.353H4.893a1 1 0 01-.95-1.352l3.056-9.41z" /></svg>
+                گزارش نقاط قوت
+            </button>
+            <button class="bg-red-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-red-700 transition shadow-md flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-8a1 1 0 00-2 0v2a1 1 0 102 0v-2zm-1-4a1 1 0 10-2 0v2a1 1 0 102 0V6z" clip-rule="evenodd" /></svg>
+                لیست انتقادات اولویت‌دار
+            </button>
+            <button class="bg-green-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-green-700 transition shadow-md flex items-center">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 8.293a1 1 0 011.414 0L10 10.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                ارسال گزارش به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global Chart Defaults
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = 'Vazirmatn';
+        Chart.defaults.font.size = 12;
+        Chart.defaults.plugins.legend.rtl = true;
+        Chart.defaults.plugins.tooltip.rtl = true;
+
+        const createChart = (id, type, data, options) => {
+            const ctx = document.getElementById(id).getContext('2d');
+            new Chart(ctx, { type, data, options });
+        };
+
+        // Helper function for random colors
+        const colors = [
+            '#4f46e5', '#10b981', '#facc15', '#ef4444', '#f97316', 
+            '#a855f7', '#64748b', '#22c55e', '#3b82f6', '#eab308'
+        ];
+
+        // 1. Sentiment Comparison (Line Chart)
+        createChart('sentimentComparison', 'line', {
+            labels: ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'],
+            datasets: [
+                { 
+                    label: 'مثبت (ماه جاری)', 
+                    data: [65, 70, 68, 72], 
+                    borderColor: '#10b981', 
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)', 
+                    fill: true, tension: 0.4, borderWidth: 3
+                },
+                { 
+                    label: 'مثبت (ماه قبل)', 
+                    data: [60, 65, 62, 68], 
+                    borderColor: '#9ca3af', 
+                    backgroundColor: 'rgba(156, 163, 175, 0.1)', 
+                    fill: false, tension: 0.4, borderDash: [5, 5]
+                }
+            ]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: false, min: 50, max: 80, title: { display: true, text: 'درصد احساسات مثبت' } } }
+        });
+
+        // 2. Sentiment by Topic (Stacked Bar Chart)
+        createChart('sentimentByTopic', 'bar', {
+            labels: ['مسکن روستایی', 'نهضت ملی مسکن', 'بازسازی بحران', 'توسعه زیرساخت', 'تعامل با دولت'],
+            datasets: [
+                { label: 'مثبت', data: [55, 40, 75, 60, 45], backgroundColor: '#10b981' },
+                { label: 'خنثی', data: [35, 30, 15, 25, 35], backgroundColor: '#facc15' },
+                { label: 'منفی', data: [10, 30, 10, 15, 20], backgroundColor: '#ef4444' }
+            ]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { 
+                x: { stacked: true }, 
+                y: { stacked: true, beginAtZero: true, max: 100, title: { display: true, text: 'درصد کل پوشش موضوعی' } } 
+            },
+            plugins: { legend: { position: 'bottom' } }
+        });
+
+        // 3. Media Share (Doughnut Chart)
+        createChart('mediaShare', 'doughnut', {
+            labels: ['خبرگزاری‌های داخلی', 'نهادهای رسمی', 'فضای مجازی (Social)', 'رسانه‌های خارجی'],
+            datasets: [{ 
+                data: [45, 25, 28, 2], 
+                backgroundColor: ['#4f46e5', '#a855f7', '#f97316', '#64748b'],
+                hoverOffset: 8
+            }]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { position: 'bottom' },
+                datalabels: {
+                    formatter: (value, ctx) => {
+                        let sum = 0;
+                        let dataArr = ctx.chart.data.datasets[0].data;
+                        dataArr.map(data => { sum += data; });
+                        let percentage = (value*100 / sum).toFixed(1)+"%";
+                        return percentage;
+                    },
+                    color: '#fff',
+                }
+            }
+        });
+
+        // 3. Institution Activity (Horizontal Bar Chart)
+        createChart('institutionActivity', 'bar', {
+            labels: ['وزارت راه و شهرسازی', 'مجلس شورای اسلامی', 'استانداران استان‌ها', 'سازمان برنامه و بودجه', 'وزارت کشور', 'بانک مرکزی'],
+            datasets: [{ 
+                label: 'تعداد خبر مشترک', 
+                data: [150, 120, 95, 70, 60, 40], 
+                backgroundColor: colors[0],
+                borderRadius: 8
+            }]
+        }, {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { beginAtZero: true, title: { display: true, text: 'تعداد خبر' } } },
+            plugins: { legend: { display: false } }
+        });
+
+
+        // 4. Social Engagement vs Sentiment (Dual Axis Line Chart)
+        createChart('socialEngagement', 'line', {
+            labels: ['۱ شهریور', '۸ شهریور', '۱۵ شهریور', '۲۲ شهریور', '۲۹ شهریور'],
+            datasets: [
+                { 
+                    label: 'احساسات مثبت (درصد)', 
+                    data: [58, 62, 70, 68, 65], 
+                    borderColor: '#22c55e', 
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)', 
+                    yAxisID: 'y1', tension: 0.3, fill: true
+                },
+                { 
+                    label: 'حجم تعامل (هزار)', 
+                    data: [15, 18, 25, 22, 20], 
+                    borderColor: '#3b82f6', 
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)', 
+                    yAxisID: 'y2', tension: 0.3, fill: false
+                }
+            ]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'درصد مثبت' },
+                    grid: { drawOnChartArea: false },
+                    min: 50, max: 80
+                },
+                y2: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: 'حجم تعامل (هزار)' },
+                    min: 0, max: 30
+                }
+            }
+        });
+    </script>
+</body>
+</html>
