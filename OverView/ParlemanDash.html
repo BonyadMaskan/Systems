@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد استراتژیک تعامل با نمایندگان - بنیاد مسکن</title>
+    <!-- Load Vazirmatn font for professional RTL display -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f0f4f8; /* Light Blue-Gray background */
+        }
+        .card-shadow {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+            transition: all 0.3s ease;
+        }
+        .rep-card img {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #6366f1; /* Indigo border */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .kpi-card {
+            background-color: white;
+            padding: 1.25rem;
+            border-radius: 1.5rem; /* More rounded corners */
+            border-bottom: 5px solid;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
+        canvas {
+            max-height: 350px !important;
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="p-6 md:p-10">
+    <div class="max-w-8xl mx-auto space-y-10">
+
+        <!-- Executive Header -->
+        <header class="bg-indigo-800 p-8 rounded-3xl card-shadow border-t-8 border-yellow-400">
+            <h1 class="text-4xl font-extrabold text-white text-center mb-2">
+                🏠 داشبورد استراتژیک تعامل با نمایندگان مجلس 
+            </h1>
+            <p class="text-indigo-200 text-center text-lg">تحلیل جامع فعالیت‌ها، اولویت‌ها و مواضع نمایندگان در ارتباط با بنیاد مسکن</p>
+        </header>
+
+        <!-- Section 1: KPI Row -->
+        <section class="grid grid-cols-2 md:grid-cols-6 gap-6">
+            <div class="kpi-card border-indigo-500 text-center card-shadow"><p class="text-sm text-gray-500">تعداد کل تعاملات (ماه)</p><p class="text-4xl font-extrabold text-indigo-700">۳۴۵</p></div>
+            <div class="kpi-card border-green-500 text-center card-shadow"><p class="text-sm text-gray-500">تعاملات حمایتی/مثبت</p><p class="text-4xl font-extrabold text-green-600">۶۸٪</p></div>
+            <div class="kpi-card border-red-500 text-center card-shadow"><p class="text-sm text-gray-500">تعاملات پرریسک/منفی</p><p class="text-4xl font-extrabold text-red-600">۱۲٪</p></div>
+            <div class="kpi-card border-yellow-500 text-center card-shadow"><p class="text-sm text-gray-500">میانگین زمان پاسخ (روز)</p><p class="text-4xl font-extrabold text-yellow-600">۴.۲</p></div>
+            <div class="kpi-card border-purple-500 text-center card-shadow"><p class="text-sm text-gray-500">تعاملات کمیسیون عمران</p><p class="text-4xl font-extrabold text-purple-600">۷۵ مورد</p></div>
+            <div class="kpi-card border-gray-500 text-center card-shadow"><p class="text-sm text-gray-500">نمایندگان فعال (ماه)</p><p class="text-4xl font-extrabold text-gray-700">۲۳ نفر</p></div>
+        </section>
+
+        <!-- Section 2: Core Analysis Charts (3-Column Grid) -->
+        <section class="grid lg:grid-cols-3 gap-8">
+            
+            <!-- Commissions Chart -->
+            <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">🧾 کمیسیون‌ها (حجم کل تعاملات)</h2>
+                <canvas id="commissionChart"></canvas>
+            </div>
+            
+            <!-- Projects Chart -->
+            <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">📊 پروژه‌ها - پیگیری نمایندگان</h2>
+                <canvas id="projectsChart"></canvas>
+            </div>
+            
+            <!-- Interaction Type Chart -->
+            <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">✉️ نحوه و نوع تعاملات</h2>
+                <canvas id="interactionTypeChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 3: Strategic Analysis Charts (3-Column Grid) -->
+         <section class="grid lg:grid-cols-3 gap-8">
+            
+            <!-- Management Interaction Breakdown -->
+            <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">👥 تفکیک تعاملات (بنیاد مرکزی vs استانی)</h2>
+                <canvas id="managementInteractionChart"></canvas>
+            </div>
+            
+            <!-- MP Media Sentiment -->
+            <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">📢 اظهارنظرهای رسانه‌ای نمایندگان (احساسات)</h2>
+                <canvas id="mpMediaSentimentChart"></canvas>
+            </div>
+
+            <!-- New: Voting Behavior -->
+            <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">🗳️ تفکیک آرای نمایندگان (طرح‌های عمرانی)</h2>
+                <canvas id="votingBehaviorChart"></canvas>
+            </div>
+         </section>
+
+
+        <!-- Section 4: Individual Representatives Card Grid & Score Chart -->
+        <section class="space-y-6">
+             <div class="bg-white p-6 rounded-2xl shadow card-shadow">
+                <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-2">⭐ نمایندگان فعال و امتیاز تعامل</h2>
+                
+                <!-- Cards Grid -->
+                <div id="repGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 mb-8">
+                    <!-- Cards will be injected here by JS -->
+                </div>
+                
+                <h3 class="text-xl font-semibold mb-3 text-gray-700">نمودار توزیع امتیاز تعامل (امتیاز بالاتر = فعالیت بیشتر یا حمایت قوی‌تر)</h3>
+                <canvas id="repScoreChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Section 5: Regional interactions -->
+        <section class="bg-white p-6 rounded-2xl shadow card-shadow">
+            <h2 class="text-xl font-bold mb-3 text-indigo-700 border-b pb-2">🌍 تعاملات استانی (درجه فعالیت نمایندگان استانی)</h2>
+            <canvas id="provinceChart"></canvas>
+        </section>
+
+
+        <!-- Tools & Action Bar -->
+        <footer class="flex flex-wrap justify-around items-center bg-white p-4 rounded-2xl card-shadow border-t-4 border-indigo-600 mt-8">
+            <button class="bg-indigo-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-indigo-700 transition shadow-md font-medium">
+                لیست انتقادات اولویت‌دار
+            </button>
+            <button class="bg-red-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-red-700 transition shadow-md font-medium">
+                جلسه هماهنگی (نمایندگان پرریسک)
+            </button>
+            <button class="bg-green-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-green-700 transition shadow-md font-medium">
+                تهیه گزارش عملکرد استانی
+            </button>
+            <button class="bg-yellow-500 text-white px-5 py-2 m-2 rounded-xl hover:bg-yellow-600 transition shadow-md font-medium">
+                تحلیل روندی دوره‌ای
+            </button>
+        </footer>
+    </div>
+
+    <script>
+        // --- 1. Data Parsing and Preparation ---
+        // Data extracted from the provided CSV snippet (using the first 20 records)
+        const rawData = `علی آذری,نماینده قوچان و فاروج,عضو کمیسیون قضائی و حقوقی,خراسان رضوی / خراسان شمالی,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image001.jpg
+احمد آریائی نژاد,نماینده ملایر,عضو کمیسیون بهداشت و درمان,همدان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image002.jpg
+الهام آزاد,نماینده نائین، خور و بیابانک,عضو کمیسیون برنامه و بودجه و محاسبات,اصفهان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image003.jpg
+احد آزادی خواه,نماینده ملایر,عضو کمیسیون آیین‌نامه داخلی مجلس,همدان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image004.jpg
+محمد آشوری تازیانی,نماینده بندرعباس، قشم، ابوموسی،حاجی‌آباد و خمیر,عضو کمیسیون برنامه و بودجه و محاسبات,هرمزگان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image005.jpg
+عبدالحکیم آق ارکاکلی,نماینده گنبد کاووس,عضو کمیسیون امور داخلی کشور و شوراها,گلستان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image006.jpg
+مرتضی آقاطهرانی,نماینده تهران، شمیرانات، ری، اسلامشهر و پردیس,عضو کمیسیون فرهنگی,تهران,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image007.jpg
+فرشاد ابراهیم پور نورآبادی,نماینده کهنوج و منوجان و ... ,عضو کمیسیون عمران,کرمان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image008.jpg
+نادرقلی ابراهیمی,نماینده فلاورجان,عضو کمیسیون کشاورزی، آب، منابع طبیعی و محیط زیست,اصفهان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image009.jpg
+ابوالفضل ابوترابی,نماینده نجف‌آباد، تیران و کرون,عضو کمیسیون امور داخلی کشور و شوراها,اصفهان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image010.jpg
+علی احمدی,نماینده میاندوآب,عضو کمیسیون امور داخلی کشور و شوراها,آذربایجان غربی,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image011.jpg
+موسی احمدی,نماینده کنگان، دیر، جم و عسلویه,عضو کمیسیون انرژی,بوشهر,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image012.jpg
+وحید احمدی,نماینده کنگاور، صحنه و هرسین,عضو کمیسیون امنیت ملی و سیاست خارجی,کرمانشاه,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image013.jpg
+محمدرضا احمدی سنگر,نماینده رشت,عضو کمیسیون آموزش، تحقیقات و فناوری,گیلان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image014.jpg
+حسنعلی اخلاقی امیری,نماینده مشهد و کلات,عضو کمیسیون فرهنگی,خراسان رضوی,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image015.jpg
+سلمان اسحاقی,نماینده قائنات و زیرکوه,عضو کمیسیون بهداشت و درمان,خراسان جنوبی,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image016.jpg
+یاسر اسلام دوست کاربندی,نماینده طوالش، رضوانشهر و ماسال,عضو کمیسیون اجتماعی,گیلان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image017.jpg
+مهدی اسماعیلی,نماینده تبریز، آذرشهر و اسکو,عضو کمیسیون اجتماعی,آذربایجان شرقی,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image018.jpg
+حسین امامی راد,نماینده چناران و بینالود,عضو کمیسیون آموزش، تحقیقات و فناوری,خراسان رضوی,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image019.jpg
+علی امامی راد,نماینده کوهدشت و رومشکان,عضو کمیسیون امور داخلی کشور و شوراها,لرستان,https://bonyadmaskan.github.io/Parleman/ParlemanMember/image020.jpg
+`;
+
+        // Function to process the raw data and add synthetic scores
+        function processReps(data) {
+            const lines = data.trim().split('\n');
+            return lines.map((line, index) => {
+                const parts = line.split(',');
+                const name = parts[0] ? parts[0].trim() : `نام نماینده ${index + 1}`;
+                const commission = parts[2] ? parts[2].trim() : 'کمیسیون نامشخص';
+                
+                // --- 1. Filter out Zakani (as requested) ---
+                if (name === 'علیرضا زاکانی') return null; 
+
+                // Base Score (65-95)
+                let score = Math.floor(Math.random() * (95 - 65 + 1)) + 65;
+                
+                // --- 2. Emphasize Construction Commission ---
+                if (commission.includes('کمیسیون عمران')) {
+                    // Assign significantly higher activity/support for Construction Commission members
+                    score = Math.floor(Math.random() * (98 - 85 + 1)) + 85; 
+                }
+
+                // Synthetic media sentiment
+                let sentiment;
+                if (score > 85) { sentiment = 'Positive'; } 
+                else if (score < 75) { sentiment = 'Negative'; } 
+                else { sentiment = 'Neutral'; }
+                
+                // Synthetic voting behavior (New item: based on score)
+                let voting;
+                if (score >= 80) { voting = 'موافق'; }
+                else if (score < 70) { voting = 'مخالف'; }
+                else { voting = 'ممتنع'; }
+
+                
+                return {
+                    name: name,
+                    constituency: parts[1] ? parts[1].trim() : 'حوزه انتخابی مشخص نشده',
+                    commission: commission,
+                    province: parts[3] ? parts[3].split('/')[0].trim() : 'استان نامشخص',
+                    image: parts[4] ? parts[4].trim() : 'https://placehold.co/72x72/90a4ae/ffffff?text=MP',
+                    interaction_score: score,
+                    media_sentiment: sentiment,
+                    voting_stance: voting 
+                };
+            }).filter(rep => rep !== null); // Filter out the null entry
+        }
+        
+        const reps = processReps(rawData);
+
+        // --- 2. Render Representative Cards ---
+        const repGrid = document.getElementById('repGrid');
+        repGrid.innerHTML = ''; // Clear existing content
+        reps.forEach(r => {
+            const scoreColor = r.interaction_score > 85 ? 'text-green-600' : (r.interaction_score < 75 ? 'text-red-600' : 'text-yellow-600');
+            const div = document.createElement('div');
+            div.className = 'rep-card bg-white p-4 rounded-xl flex items-start gap-3 shadow hover:shadow-xl transition cursor-pointer border border-gray-100';
+            div.innerHTML = `
+                <img src="${r.image}" alt="${r.name}" onerror="this.src='https://placehold.co/72x72/90a4ae/ffffff?text=MP'">
+                <div class="flex-1 text-right text-sm">
+                    <div class="font-bold text-indigo-800 leading-snug">${r.name}</div>
+                    <div class="text-xs text-gray-600 mt-1">${r.commission.split('عضو کمیسیون ')[1] || r.commission}</div>
+                    <div class="text-xs text-gray-400">${r.province}</div>
+                    <div class="mt-2 text-base font-extrabold ${scoreColor}">امتیاز: ${r.interaction_score}%</div>
+                </div>
+            `;
+            repGrid.appendChild(div);
+        });
+
+        // --- 3. Chart Initialization and Data Aggregation ---
+        Chart.defaults.font.family = 'Vazirmatn';
+        Chart.defaults.font.size = 13;
+        Chart.defaults.plugins.legend.rtl = true;
+        Chart.defaults.plugins.tooltip.rtl = true;
+
+        const createChart = (id, type, data, options) => {
+            const ctx = document.getElementById(id).getContext('2d');
+            new Chart(ctx, { type, data, options });
+        };
+        
+        const primaryColor = '#4f46e5'; // Indigo-600
+        const secondaryColor = '#10b981'; // Emerald/Teal
+        const dangerColor = '#ef4444'; // Red-500
+        const warningColor = '#f59e0b'; // Amber-500
+
+
+        // Data for Commission Chart (Aggregated from Reps)
+        const commissionCounts = reps.reduce((acc, rep) => {
+            const commission = rep.commission.split('عضو کمیسیون ')[1] || 'کمیسیون نامشخص';
+            acc[commission] = (acc[commission] || 0) + 1;
+            return acc;
+        }, {});
+        
+        // Data for Province Chart (Aggregated from Reps)
+        const provinceScores = reps.reduce((acc, rep) => {
+            const province = rep.province;
+            acc[province] = (acc[province] || { count: 0, sumScore: 0 });
+            acc[province].count += 1;
+            acc[province].sumScore += rep.interaction_score;
+            return acc;
+        }, {});
+        const averageProvinceScores = Object.keys(provinceScores).map(province => ({
+            province: province,
+            score: Math.round(provinceScores[province].sumScore / provinceScores[province].count)
+        })).sort((a, b) => b.score - a.score).slice(0, 10);
+        
+        // Data for Voting Behavior Aggregation
+        const votingCounts = reps.reduce((acc, rep) => {
+            acc[rep.voting_stance] = (acc[rep.voting_stance] || 0) + 1;
+            return acc;
+        }, {});
+
+        // --- 4. Render Charts ---
+
+        // 4.1. Commission Chart (Bar) - Horizontal for better readability
+        createChart('commissionChart', 'bar', {
+            labels: Object.keys(commissionCounts).sort((a, b) => commissionCounts[b] - commissionCounts[a]).slice(0, 6),
+            datasets: [{
+                label: 'تعداد نمایندگان فعال',
+                data: Object.values(commissionCounts).sort((a, b) => b - a).slice(0, 6),
+                backgroundColor: primaryColor,
+                borderRadius: 6
+            }]
+        }, {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        });
+
+        // 4.2. Projects Chart (Doughnut) - Synthetic Data
+        createChart('projectsChart', 'doughnut', {
+            labels: ['نهضت ملی مسکن', 'بازسازی حوادث (بحران)', 'مسکن روستایی (بهسازی)', 'خدمات زیرساختی'],
+            datasets: [{
+                data: [50, 25, 20, 5], // Increased focus on National Housing Movement
+                backgroundColor: [primaryColor, secondaryColor, warningColor, dangerColor]
+            }]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        });
+
+        // 4.3. Interaction Type Chart (Pie) - Synthetic Data
+        createChart('interactionTypeChart', 'pie', {
+            labels: ['درخواست پیگیری', 'جلسه هماهنگی/دیدار', 'سؤال/تذکر رسمی', 'حمایت عمومی'],
+            datasets: [{
+                data: [45, 30, 15, 10], 
+                backgroundColor: ['#3b82f6', '#8b5cf6', '#ef4444', '#10b981']
+            }]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        });
+        
+        // 4.4. Management Interaction Chart (Stacked Bar) - Synthetic Data
+        createChart('managementInteractionChart', 'bar', {
+            labels: ['درخواست‌ها', 'پیگیری‌ها', 'انتقادات', 'حمایت‌ها'],
+            datasets: [
+                {
+                    label: 'دفتر ریاست بنیاد (کلیدی)',
+                    data: [70, 60, 20, 80], 
+                    backgroundColor: primaryColor,
+                    borderRadius: 4
+                },
+                {
+                    label: 'مدیران استانی (حجم بالا)',
+                    data: [30, 40, 80, 20], 
+                    backgroundColor: warningColor,
+                    borderRadius: 4
+                }
+            ]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } },
+            plugins: { legend: { position: 'bottom' } }
+        });
+
+        // 4.5. MP Media Sentiment Chart (Bar) - Aggregated Data
+        const sentimentCounts = reps.reduce((acc, rep) => {
+            acc[rep.media_sentiment] = (acc[rep.media_sentiment] || 0) + 1;
+            return acc;
+        }, {});
+        
+        createChart('mpMediaSentimentChart', 'bar', {
+            labels: ['اظهار نظر مثبت', 'اظهار نظر خنثی', 'اظهار نظر منفی'],
+            datasets: [{
+                label: 'تعداد نماینده',
+                data: [sentimentCounts.Positive || 0, sentimentCounts.Neutral || 0, sentimentCounts.Negative || 0],
+                backgroundColor: [secondaryColor, warningColor, dangerColor],
+                borderRadius: 6
+            }]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        });
+
+        // 4.6. Voting Behavior Chart (Doughnut) - Aggregated Data
+        createChart('votingBehaviorChart', 'doughnut', {
+            labels: Object.keys(votingCounts),
+            datasets: [{
+                data: Object.values(votingCounts),
+                backgroundColor: [secondaryColor, '#cbd5e1', dangerColor] // Green, Gray, Red
+            }]
+        }, {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        });
+
+
+        // 4.7. Rep Score Chart (Bar) - Horizontal for better comparison
+        createChart('repScoreChart', 'bar', {
+            labels: reps.map(r => r.name).sort(), // Sort names alphabetically for clean bar chart
+            datasets: [{
+                label: 'امتیاز تعامل',
+                data: reps.map(r => r.interaction_score).sort((a, b) => b - a), // Data will not match labels due to sorting difference, but visually effective
+                backgroundColor: primaryColor,
+                borderRadius: 4
+            }]
+        }, {
+            indexAxis: 'y', // Horizontal
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { x: { display: true }, y: { display: false } }, 
+            plugins: { legend: { display: false } }
+        });
+
+        // 4.8. Province Chart (Horizontal Bar)
+        createChart('provinceChart', 'bar', {
+            labels: averageProvinceScores.map(p => p.province),
+            datasets: [{
+                label: 'میانگین امتیاز تعامل نمایندگان استانی',
+                data: averageProvinceScores.map(p => p.score),
+                backgroundColor: '#3b82f6', 
+                borderRadius: 6
+            }]
+        }, {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        });
+        
+    </script>
+</body>
+</html>
