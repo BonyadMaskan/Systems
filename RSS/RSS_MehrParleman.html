@@ -132,7 +132,7 @@
 <body>
 
     <div class="container">
-        <h1 class="header">جدیدترین اخبار مسعود امامی یگانه (مهرنیوز)</h1>
+        <h1 class="header">آخرین اخبار مجلس شورای اسلامی</h1>
         <div id="rss-feed" class="news-grid">
             <p class="loading-message">در حال بارگذاری اخبار...</p>
         </div>
@@ -140,7 +140,7 @@
 
     <script>
         $(document).ready(function() {
-            const rssUrl = 'https://www.mehrnews.com/rss/tp/38';
+            const rssUrl = 'https://mehrnews.com/rss/tp/38';
             const proxyUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl);
 
             $.ajax({
@@ -201,3 +201,4 @@
 
 </body>
 </html>
+
