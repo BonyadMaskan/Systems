@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد جامع پایش و ارزیابی عملکرد واحدهای بنیاد مسکن انقلاب اسلامی (تم خاکی)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
+
+<style>
+    /* تعریف متغیرهای تم رنگی جدید (خاکی، نارنجی و سبز) */
+    :root {
+        --primary-color: #5D4037; /* قهوه‌ای تیره */
+        --secondary-color: #E65100; /* نارنجی سوخته (برنز) */
+        --accent-color: #8BC34A; /* سبز زیتونی (برای رشد و آیکون‌ها) */
+        --comparison-color: #8BC34A; /* سبز برای مقایسه/رشد مثبت */
+        --prev-period-color: #D7CCC8; /* بژ روشن برای بک‌گراند دایره‌ای */
+        --bg-light: #FAFAFA; /* پس‌زمینه کرم روشن */
+        --success-color: #4CAF50;
+        --warning-color: #FFC107;
+        --danger-color: #F44336;
+        --text-dark: #3E2723; /* قهوه‌ای تیره برای متن */
+    }
+
+    body {
+        font-family: "IRANSans", Tahoma, sans-serif;
+        background: var(--bg-light);
+        margin: 0;
+        padding: 0;
+        color: var(--text-dark);
+        direction: rtl; 
+    }
+
+    header {
+        /* گرادیان با رنگ‌های تم جدید */
+        background: linear-gradient(135deg, var(--primary-color), #3E2723);
+        color: white;
+        padding: 30px 20px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 900;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+    }
+
+    .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+        gap: 30px;
+        padding: 40px 30px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        padding: 30px;
+        transition: all 0.3s ease-in-out;
+        /* لبه بالایی با رنگ نارنجی سوخته */
+        border-top: 5px solid var(--secondary-color);
+        display: flex; 
+        flex-direction: column;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        border-top-color: var(--accent-color); /* تغییر رنگ در هاور */
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+    }
+
+    .card-header h3 {
+        color: var(--primary-color);
+        font-size: 22px;
+        font-weight: bold;
+        margin: 0;
+    }
+
+    .card-header i {
+        /* آیکون‌ها با رنگ تأکید سبز */
+        font-size: 28px;
+        color: var(--accent-color);
+    }
+
+    /* بخش نمودار مقایسه‌ای و امتیاز کلی */
+    .summary-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding: 10px;
+        /* پس‌زمینه ملایم */
+        background: #efebe9; 
+        border-radius: 15px;
+        border: 1px solid var(--prev-period-color);
+    }
+
+    .overall-score {
+        flex-basis: 40%;
+        text-align: center;
+        font-weight: bold;
+        color: var(--primary-color);
+        padding-left: 10px; 
+        border-left: 1px dashed #ccc;
+    }
+    
+    .score-value {
+        /* امتیاز کلی با رنگ ثانویه نارنجی */
+        font-size: 28px;
+        color: var(--secondary-color);
+        margin-top: 5px;
+    }
+
+    /* سبک نمودار دایره‌ای شبیه‌سازی شده (Donut Chart) */
+    .comparison-chart {
+        flex-basis: 55%;
+        position: relative;
+        width: 100px; 
+        height: 100px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: var(--prev-period-color); 
+        overflow: hidden;
+    }
+
+    .chart-hole {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        background: white;
+        border-radius: 50%;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--comparison-color);
+    }
+
+    .growth-label {
+        font-size: 12px;
+        color: var(--text-dark);
+        margin-top: 5px;
+    }
+
+    /* سبک نمودارهای میله‌ای */
+    .indicator {
+        margin-bottom: 12px;
+        padding-top: 5px;
+    }
+
+    .label {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .percentage {
+        font-size: 15px;
+        font-weight: bold;
+        color: var(--text-dark);
+    }
+
+    .bar-container {
+        background: #e0e0e0;
+        border-radius: 8px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.6s ease-out;
+    }
+
+    /* رنگ‌های شرطی نوارها تغییر نمی‌کنند تا مفهوم وضعیت حفظ شود */
+    .bar[data-progress-color="green"] {
+        background: linear-gradient(90deg, #a5d6a7, var(--success-color));
+    }
+    .bar[data-progress-color="orange"] {
+        background: linear-gradient(90deg, #ffe082, var(--warning-color));
+    }
+    .bar[data-progress-color="red"] {
+        background: linear-gradient(90deg, #ff8a80, var(--danger-color));
+    }
+</style>
+</head>
+<body>
+
+<header>🏡📈 داشبورد جامع پایش و ارزیابی عملکرد واحدهای بنیاد مسکن انقلاب اسلامی</header>
+
+<div class="container">
+
+    <div class="card">
+        <div class="card-header">
+            <h3>دفتر نمایندگی ولی فقیه</h3>
+            <i class="fas fa-hand-holding-heart"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+8%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">93%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تحقق مأموریت‌های ابلاغی</span><span class="percentage">95%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:95%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>توسعه فعالیت‌های فرهنگی و دینی</span><span class="percentage">92%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:92%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>حجم ارتباط با دفاتر استانی</span><span class="percentage">91%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:91%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>حوزه ریاست</h3>
+            <i class="fas fa-chess-king"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+2%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">86%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پایش پروژه‌های کلان و راهبردی</span><span class="percentage">89%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:89%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>مدیریت ریسک و بحران (هماهنگی سریع)</span><span class="percentage">85%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:85%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>اثربخشی ارتباطات عمومی و بین‌واحدی</span><span class="percentage">83%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:83%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>معاونت پشتیبانی و توسعه مدیریت</h3>
+            <i class="fas fa-users-cog"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container" style="background: var(--comparison-color);">
+                    <div class="chart-hole" style="color: var(--danger-color);">
+                        <span>-5%</span> <i class="fas fa-arrow-down" style="color: var(--danger-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value" style="color: var(--danger-color);">83%</div>
+                <div class="growth-label">افت نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تأمین و نگهداشت نیروی متخصص</span><span class="percentage">84%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:84%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>صرفه‌جویی در هزینه‌های غیرضرور</span><span class="percentage">79%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:79%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>میانگین رضایت کارکنان</span><span class="percentage">80%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:80%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>نرخ جذب و نگهداشت متخصصین</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>معاونت امور بازسازی و مسکن روستایی</h3>
+            <i class="fas fa-home"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+5%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">90%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تحویل مسکن بازسازی شده (به موقع)</span><span class="percentage">91%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:91%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>رضایت مردم مناطق بازسازی شده</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>سرعت واکنش و شروع بازسازی</span><span class="percentage">92%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:92%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>معاونت مسکن شهری</h3>
+            <i class="fas fa-city"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container" style="background: var(--comparison-color);">
+                    <div class="chart-hole" style="color: var(--danger-color);">
+                        <span>-1%</span> <i class="fas fa-arrow-down" style="color: var(--danger-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                <div class="score-value">83%</div>
+                <div class="growth-label">ثبات نسبی نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تکمیل پروژه‌های نهضت ملی مسکن</span><span class="percentage">87%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:87%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پایش کیفیت ساخت و سازها</span><span class="percentage">82%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:82%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>جذب سرمایه‌گذاری برای پروژه‌ها</span><span class="percentage">80%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:80%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تأمین زمین و مستندسازی</span><span class="percentage">83%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:83%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>معاونت برنامه‌ریزی و نظارت</h3>
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+4%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">90%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>دقت و به‌روزرسانی گزارش‌های مدیریتی</span><span class="percentage">92%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:92%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>انطباق برنامه با اهداف کلان سازمان</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>اثربخشی فرآیند پایش عملکرد</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>معاونت توسعه و عمران روستایی</h3>
+            <i class="fas fa-tree-city"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+3%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">91%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>اجرای طرح‌های هادی روستایی</span><span class="percentage">93%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:93%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پوشش بیمه حوادث روستایی</span><span class="percentage">89%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:89%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>رضایت‌مندی عمومی از خدمات عمرانی</span><span class="percentage">91%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:91%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>ترویج مقاوم‌سازی و ارائه تسهیلات</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>اداره کل امور مالی</h3>
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+6%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">93%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تسویه به موقع تعهدات و بدهی‌ها</span><span class="percentage">96%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:96%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>شفافیت و گزارش‌دهی بودجه‌ای</span><span class="percentage">94%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:94%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>کاهش مغایرت‌های حسابداری</span><span class="percentage">91%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:91%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>اداره کل روابط عمومی و بین‌الملل</h3>
+            <i class="fas fa-bullhorn"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+2%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">90%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پوشش کیفی و مؤثر رسانه‌ای</span><span class="percentage">92%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:92%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>ارتقاء وجهه سازمان در رسانه‌ها</span><span class="percentage">89%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:89%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>مدیریت بحران رسانه‌ای</span><span class="percentage">87%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:87%;"></div></div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3>دفتر فناوری اطلاعات و ارتباطات</h3>
+            <i class="fas fa-server"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+5%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">89%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پایداری و در دسترس بودن سامانه‌ها</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>اجرای طرح‌های تحول دیجیتال</span><span class="percentage">87%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:87%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>امنیت سایبری و حفاظت از داده‌ها</span><span class="percentage">92%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:92%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>اداره کل اداری و پشتیبانی</h3>
+            <i class="fas fa-boxes-stacked"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+1%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">86%</div>
+                <div class="growth-label">رشد کم نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پشتیبانی لجستیکی و تأمین کالا</span><span class="percentage">86%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:86%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>مدیریت بهینه اموال و دارایی‌ها</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>نظم و انضباط اداری</span><span class="percentage">85%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:85%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>اداره کل حراست</h3>
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+4%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">91%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>امنیت و حفاظت فیزیکی و اداری</span><span class="percentage">94%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:94%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>کشف و پیشگیری از تخلفات</span><span class="percentage">92%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:92%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>آموزش و آگاهی‌رسانی به کارکنان</span><span class="percentage">85%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:85%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>اداره کل ذی‌حسابی</h3>
+            <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+3%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">93%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>انضباط و دقت حسابداری</span><span class="percentage">95%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:95%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>کنترل داخلی و بودجه</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>سرعت رسیدگی به اسناد</span><span class="percentage">93%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:93%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>دفتر برنامه‌ریزی و بودجه</h3>
+            <i class="fas fa-calendar-days"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+2%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">88%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تطابق با سند راهبردی</span><span class="percentage">91%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:91%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تحقق اهداف سالانه</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پایش و کنترل هزینه‌ها</span><span class="percentage">86%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:86%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>دفتر امور ماشین‌آلات</h3>
+            <i class="fas fa-tractor"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container" style="background: var(--comparison-color);">
+                    <div class="chart-hole" style="color: var(--danger-color);">
+                        <span>-3%</span> <i class="fas fa-arrow-down" style="color: var(--danger-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                <div class="score-value" style="color: var(--danger-color);">85%</div>
+                <div class="growth-label">افت نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>آمادگی و پایداری ناوگان</span><span class="percentage">85%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:85%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>نگهداری و تعمیرات پیشگیرانه</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>پشتیبانی میدانی از پروژه‌ها</span><span class="percentage">84%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:84%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>هیئت گزینش</h3>
+            <i class="fas fa-user-check"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+1%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">89%</div>
+                <div class="growth-label">ثبات نسبی نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>دقت و صحت فرآیند بررسی</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>دقت و مستندسازی پرونده‌ها</span><span class="percentage">93%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:93%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>مدت زمان رسیدگی و اعلام نتایج</span><span class="percentage">85%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="orange" style="width:85%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>دفتر حساب ۱۰۰ امام</h3>
+            <i class="fas fa-hand-holding-usd"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+7%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">88%</div>
+                <div class="growth-label">رشد قوی نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>تأمین مسکن برای نیازمندان</span><span class="percentage">88%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:88%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>شفافیت و گزارش‌دهی مالی خیریه</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>میزان جذب و تعامل با خیرین</span><span class="percentage">86%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:86%;"></div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>دفتر ارزیابی عملکرد و پاسخگویی به شکایات</h3>
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="summary-section">
+            <div class="comparison-chart">
+                <div class="chart-container">
+                    <div class="chart-hole">
+                        <span>+4%</span> <i class="fas fa-arrow-up" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="overall-score">
+                امتیاز کلی عملکرد: 
+                <div class="score-value">91%</div>
+                <div class="growth-label">رشد نسبت به دوره قبل</div>
+            </div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>دقت و عمق تحلیل شاخص‌ها</span><span class="percentage">94%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:94%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>زمان پاسخگویی به شکایات</span><span class="percentage">91%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:91%;"></div></div>
+        </div>
+        <div class="indicator">
+            <div class="label"><span>نرخ حل و فصل شکایات</span><span class="percentage">90%</span></div>
+            <div class="bar-container"><div class="bar" data-progress-color="green" style="width:90%;"></div></div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
