@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>داشبورد مدیریتی شورای مرکزی - بنیاد مسکن</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <style>
+    /* ---------------------- تم رنگی: فیروزه‌ای/سبز زمردی ---------------------- */
+    :root{
+      --bg:#f8fcfb; /* پس‌زمینه بسیار روشن */
+      --card:#ffffff;
+      --accent:#00a389; /* فیروزه‌ای/سبز مدیریتی */
+      --accent-2:#007d6a; /* تیره برای گرادیانت و هاور */
+      --muted:#6c757d; /* خاکستری متداول */
+      --danger:#e84e4e; /* قرمز قوی برای هشدار */
+      --warning:#ffc107; /* زرد برای هشدار ثانویه */
+      --shadow-color: rgba(0, 0, 0, 0.08);
+
+      /* رنگ‌های Chart.js بر اساس تم */
+      --chart-primary: #00a389; /* اصلی */
+      --chart-secondary: #34c6b5; /* ثانویه روشن‌تر */
+      --chart-tertiary: #69d4c8; /* سومین رنگ روشن */
+      --chart-danger: #e84e4e; /* قرمز */
+      --chart-warning: #ffc107; /* زرد */
+      --chart-light-grey: #f0f0f0; /* خاکستری روشن برای پس‌زمینه نمودار */
+      --chart-dark-grey: #a0a0a0; /* خاکستری تیره برای خطوط/متن نمودار */
+    }
+    
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Vazirmatn',sans-serif;background:var(--bg);color:#1c2d30}
+    .container{max-width:1200px;margin:32px auto;padding:0 24px}
+
+    /* ---------------------- هدر و آمار ---------------------- */
+    .header{
+      display:flex;align-items:center;justify-content:space-between;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));
+      padding:24px 30px;
+      border-radius:18px;
+      color:white;
+      box-shadow:0 12px 30px rgba(0,163,137,0.3); 
+      position:relative;
+      overflow:hidden;
+    }
+    .header::before { 
+      content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+      background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' viewBox='0 0 100 100'><circle cx='-10' cy='50' r='50' fill='rgba(255,255,255,0.15)'/><circle cx='105' cy='0' r='60' fill='rgba(255,255,255,0.1)'/></svg>") no-repeat center center/cover;
+      opacity:0.8;
+    }
+    .brand{display:flex;align-items:center;gap:16px;z-index:1}
+    .logo{
+      width:60px;height:60px;border-radius:12px;
+      background:white; 
+      color:var(--accent); 
+      display:flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:32px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    }
+    .brand h1{margin:0;font-size:22px;font-weight:800}
+    .brand p{margin:0;opacity:0.95;font-size:14px;font-weight:400}
+    
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;margin-top:28px}
+    .stat{
+      background:var(--card); 
+      padding:20px; 
+      border-radius:15px; 
+      box-shadow:0 8px 25px var(--shadow-color);
+      display:flex;align-items:center;justify-content:space-between; 
+      transition:transform .2s ease, box-shadow .2s ease; /* transition برای سایه */
+      border:1px solid rgba(0,163,137,0.1);
+    }
+    .stat:hover{transform:translateY(-5px); box-shadow:0 15px 35px rgba(0,0,0,0.15);} /* سایه عمیق‌تر در هاور */
+    .stat .num{font-weight:900;font-size:30px;color:var(--accent);transition:color .3s;margin-bottom:4px}
+    .stat .lbl{font-size:14px;color:var(--muted);font-weight:600}
+    .stat-danger .num, .stat-danger .lbl{color:var(--danger)}
+    .sparkline{width:80px;height:40px;} 
+
+    /* ---------------------- کاشی‌ها (Tiles) - افکت براق ---------------------- */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:30px}
+    .tile{
+      display:flex;flex-direction:column;align-items:flex-start;gap:12px;
+      padding:25px;
+      border-radius:18px;
+      background:linear-gradient(180deg,rgba(0,163,137,0.05),transparent);
+      border:1px solid rgba(0,163,137,0.15);
+      position: relative; /* برای افکت براق */
+      overflow: hidden;
+      transition:transform .25s cubic-bezier(0.175, 0.885, 0.32, 1.27),box-shadow .25s ease;
+      cursor:pointer;
+    }
+    /* افکت براق (Shine Effect) */
+    .tile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -150%; /* شروع از دورتر */
+        width: 60%; /* پهن‌تر */
+        height: 100%;
+        background: rgba(255, 255, 255, 0.4); /* براق‌تر */
+        transform: skewX(-20deg);
+        transition: left 0.7s ease-in-out; /* انیمیشن طولانی‌تر */
+    }
+    .tile:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 18px 45px rgba(0,0,0,0.1);z-index:10}
+    .tile:hover::before {
+        left: 180%; /* حرکت دادن براقیت در هاور */
+    }
+
+    .tile .icon{
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      width:50px;height:50px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-size:24px;
+      box-shadow:0 4px 10px rgba(0,163,137,0.4);
+    }
+    .tile h3{margin:0;font-size:18px;font-weight:700}
+    .tile p{margin:0;color:var(--muted);font-size:14px}
+    .btn{
+      padding:10px 18px;
+      border-radius:10px;
+      border:none;
+      background:var(--accent);
+      color:white;
+      font-weight:600;
+      cursor:pointer;
+      transition:background .3s, transform .1s;
+      box-shadow:0 4px 10px rgba(0,163,137,0.3);
+      margin-top:8px;
+    }
+    .btn:hover{background:var(--accent-2);transform:translateY(-1px)}
+    
+    /* ---------------------- پنل جزئیات و نمودارها ---------------------- */
+    .panel{
+      margin-top:30px;
+      background:linear-gradient(180deg,#fff, #fefefe);
+      padding:25px;
+      border-radius:18px;
+      box-shadow:0 15px 40px rgba(0,0,0,0.08);
+      border-left:6px solid var(--accent);
+    }
+    .panel h4{margin:0 0 12px 0;font-size:20px;color:var(--accent);font-weight:700}
+    .chart-container{
+        display:flex;
+        gap:30px;
+        margin-top:20px;
+        flex-wrap: wrap;
+    }
+    .chart-box{
+        flex: 1 1 45%; 
+        min-width: 300px;
+        background: #fcfdff;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .chart-box h5{
+        margin: 0 0 15px 0;
+        font-size: 16px;
+        color: var(--accent-2); 
+        border-bottom: 1px dashed #eee;
+        padding-bottom: 8px;
+    }
+    /* ---------------------- بهبود گرافیک لیست‌ها ---------------------- */
+    .list{display:flex;flex-direction:column;gap:10px}
+    .list .row{
+      display:flex;justify-content:space-between;
+      align-items: center; 
+      padding:12px;
+      border-radius:10px;
+      background:var(--card); 
+      border-right:4px solid var(--accent); 
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+      font-size:14px;
+      font-weight: 500;
+      transition: all 0.2s ease; /* انیمیشن برای هاور */
+    }
+    .list .row:hover {
+        background: #f5fafd; /* رنگ پس‌زمینه در هاور */
+        transform: translateX(3px); /* حرکت کوچک */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.07);
+    }
+    .list .row-danger {
+        border-right-color: var(--danger);
+        background: rgba(232,78,78,0.05);
+    }
+    .list .row-danger:hover {
+        background: rgba(232,78,78,0.1);
+    }
+    .list .row-warning {
+        border-right-color: var(--warning);
+        background: rgba(255,193,7,0.05);
+    }
+    .list .row-warning:hover {
+        background: rgba(255,193,7,0.1);
+    }
+    .list .row > div:first-child {
+        color: #212529; 
+        font-weight: 600;
+    }
+    .list .row a {
+        color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .kpi{
+      display:inline-block;padding:6px 10px;border-radius:999px;
+      background:rgba(0,163,137,0.15); 
+      color:var(--accent);
+      font-weight:700;
+      font-size:14px;
+    }
+    .kpi-danger{background:rgba(232,78,78,0.15);color:var(--danger);}
+
+    /* ---------------------- فوتر ---------------------- */
+    .meta{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:13px;margin-top:30px;padding:15px 0;border-top:1px solid #e0e0e0;}
+    .meta .version{font-weight:600;color:var(--accent);display:inline-block;padding:4px 8px;border:1px solid var(--accent);border-radius:6px;opacity:0.8;}
+
+    /* ---------------------- واکنش‌گرا (Responsive) ---------------------- */
+    @media (max-width: 600px){
+        .header{flex-direction:column;align-items:flex-start;gap:15px}
+        .header > div:last-child{margin-top:10px}
+        .chart-container{flex-direction: column;}
+        .chart-box{min-width: auto; flex: 1 1 100%;}
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19.5v-15a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v15m-4 0v-15a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v15m-4 0v-15a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v15"/>
+            <path d="M22 22H2v-2h20z"/>
+          </svg>
+        </div>
+        <div>
+          <h1>سامانه مدیریتی ریاست بنیاد مسکن انقلاب اسلامی</h1>
+          <p>صفحه اختصاصی **شورای مرکزی** — رصد مصوبات، پیگیری و گزارش مدیریتی</p>
+        </div>
+      </div>
+      <div style="text-align:left; z-index:1">
+        <div style="font-size:14px;font-weight:700;margin-bottom:4px">وضعیت سامانه: <span class="kpi">عملیاتی</span></div>
+        <div style="font-size:12px;opacity:0.95">به‌روزرسانی: امروز، ساعت ۰۹:۴۵</div>
+      </div>
+    </header>
+
+    <div class="stats">
+      <div class="stat card">
+        <div>
+          <div class="num">۱۲۸</div> 
+          <div class="lbl">تعداد مصوبات کل</div>
+        </div>
+        <div class="sparkline"></div> 
+      </div>
+      
+      <div class="stat card stat-danger"> 
+        <div>
+          <div class="num">۳۴</div>
+          <div class="lbl">**مصوبات معوق (فوری)**</div>
+        </div>
+        <div class="sparkline stat-danger"></div> 
+      </div>
+      
+      <div class="stat card stat-percent">
+        <div>
+          <div class="num">۷۱%</div>
+          <div class="lbl">میانگین تحقق اهداف</div>
+        </div>
+        <div class="sparkline stat-percent"></div>
+      </div>
+    </div>
+    
+    <section class="grid">
+      <div class="tile" tabindex="0" role="button" onclick="showDetail('agenda')">
+        <div class="icon">📅</div>
+        <h3>تقویم جلسات</h3>
+        <p>برنامه جلسات آتی و مرور مصوبات گذشته شورای مرکزی.</p>
+        <button class="btn">مشاهده و ثبت</button>
+      </div>
+
+      <div class="tile" tabindex="0" role="button" onclick="showDetail('resolutions')">
+        <div class="icon">🧾</div>
+        <h3>لیست مصوبات</h3>
+        <p>فهرست کامل مصوبات، مسئول اجرا و جدول زمان‌بندی.</p>
+        <button class="btn">مشاهده و فیلتر</button>
+      </div>
+
+      <div class="tile" tabindex="0" role="button" onclick="showDetail('progress')">
+        <div class="icon">📈</div>
+        <h3>**روند و نمودار پیشرفت**</h3>
+        <p>نمودار و آمارهای تفکیکی درصد تحقق اهداف به تفکیک معاونت‌ها.</p>
+        <button class="btn">مشاهده نمودار</button>
+      </div>
+
+      <div class="tile" tabindex="0" role="button" onclick="showDetail('owners')">
+        <div class="icon">🏢</div>
+        <h3>واحد مسئول پیگیری</h3>
+        <p>تعیین و پایش مسئولیت‌های معاونت یا استان‌های مجری مصوبات.</p>
+        <button class="btn">مشاهده تفکیک</button>
+      </div>
+
+      <div class="tile" tabindex="0" role="button" onclick="showDetail('attachments')">
+        <div class="icon">📎</div>
+        <h3>مستندات و سوابق</h3>
+        <p>آرشیو صورت‌جلسات، نامه‌ها و فایل‌های پشتیبان مرتبط.</p>
+        <button class="btn">مدیریت فایل‌ها</button>
+      </div>
+
+      <div class="tile" tabindex="0" role="button" onclick="showDetail('alerts')">
+        <div class="icon">⚠️</div>
+        <h3>**هشدارها و بحران‌ها**</h3>
+        <p>مصوبات با تأخیر، نزدیک به اتمام مهلت و موارد نیازمند اقدام فوری.</p>
+        <button class="btn">بررسی فوری</button>
+      </div>
+    </section>
+
+    <div id="detail" class="panel" style="display:none">
+      <h4 id="detail-title">جزئیات انتخاب شده</h4>
+      <div id="detail-body">
+        <p style="color:var(--muted)">با کلیک بر روی هر یک از کاشی‌های بالا، اطلاعات مرتبط با آن بخش در این قسمت به صورت پویا نمایش داده خواهد شد.</p>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div>© بنیاد مسکن انقلاب اسلامی | نمایش خلاصه مدیریتی شورای مرکزی</div>
+      <div style="margin-left:auto"><span class="version">نسخه بتا ۱.۵</span> • طراحی واکنش‌گرا (Responsive)</div>
+    </div>
+  </div>
+
+  <script>
+    // --------------------------------- داده‌های پنل ---------------------------------
+    const details = {
+      agenda: {
+        title: 'تقویم جلسات آتی',
+        body: `<p>برنامه‌ریزی زمانی جهت برگزاری جلسات رسمی و فوق‌العاده:</p>
+               <div class="list">
+                 <div class="row row-warning">
+                    <div>**۰۸ آذر ۱۴۰۴** — جلسه فوق‌العاده</div>
+                    <div style="color:var(--warning); font-weight:700;">بررسی طرح جامع بودجه ۱۴۰۵</div>
+                 </div>
+                 <div class="row">
+                    <div>**۰۵ دی ۱۴۰۴** — جلسه عادی</div>
+                    <div>موضوع: راهبردهای نوین توسعه روستایی</div>
+                 </div>
+                </div>`
+      },
+      resolutions: {
+        title: 'فهرست مصوبات اخیر',
+        body: `<p>مصوبات فعال و در حال پیگیری:</p>
+               <div class="list">
+                 <div class="row">
+                    <div>**م۹۳-۱۴۰۴**: بازنگری آیین‌نامه داخلی</div>
+                    <div>مسئول: معاونت برنامه‌ریزی - **۷۵% پیشرفت**</div>
+                 </div>
+                 <div class="row">
+                    <div>**م۸۸-۱۴۰۴**: تخصیص اعتبار پروژه توسعه X</div>
+                    <div>وضعیت: **در حال اجرا** (۹۲%)</div>
+                 </div>
+                 <div class="row row-danger">
+                    <div>**م۷۱-۱۴۰۴**: تأمین زمین جهت طرح ملی مسکن</div>
+                    <div style="color:var(--danger); font-weight:700;">وضعیت: **متوقف** (۱۲%)</div>
+                 </div>
+                </div>`
+      },
+      progress: {
+        title: '**نمودار درصد پیشرفت مصوبات**',
+        body: `
+            <p>نمایش بصری تحقق اهداف مصوب به تفکیک معاونت‌ها و وضعیت کلی:</p>
+            <div class="chart-container">
+                <div class="chart-box">
+                    <h5>پیشرفت مصوبات بر اساس واحد مسئول</h5>
+                    <canvas id="progressChartBar" style="max-height: 250px;"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h5>تفکیک وضعیت کلی مصوبات (کل ۱۲۸)</h5>
+                    <canvas id="progressChartDoughnut" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+            <p style="font-size:12px; margin-top:15px; color:var(--muted)">* داده‌ها فرضی و بر اساس آخرین گزارش مدیریتی می‌باشند.</p>
+        `,
+        // اضافه کردن تابع برای رندر نمودار
+        onShow: renderProgressCharts 
+      },
+      owners: {
+        title: 'تفکیک مسئولیت‌های اصلی',
+        body: `<p>مشاهده مسئولیت‌های واگذار شده به واحدها:</p>
+               <div class="list">
+                 <div class="row">
+                    <div>**معاونت پشتیبانی**</div>
+                    <div>پیگیری و تأمین مصوبات مالی و تجهیزاتی</div>
+                 </div>
+                 <div class="row">
+                    <div>**معاونت توسعه و عمران**</div>
+                    <div>مسئول پروژه‌های ملی مسکن</div>
+                 </div>
+                 <div class="row">
+                    <div>**مدیریت استان تهران**</div>
+                    <div>پایش پروژه‌های کلان منطقه‌ای</div>
+                 </div>
+                </div>`
+      },
+      attachments: {
+        title: 'مستندات مهم',
+        body: `<p>دسترسی به فایل‌های اصلی و صورت‌جلسات:</p>
+               <div class="list">
+                 <div class="row">
+                    <div>**صورت‌جلسه شماره ۱۳ (۲۸ آبان)**</div>
+                    <div><a href="#"><div class="kpi" style="background:rgba(0,163,137,0.1); color:var(--accent)">📥 دانلود PDF</div></a></div>
+                 </div>
+                 <div class="row">
+                    <div>**نامه ابلاغ م۸۸**</div>
+                    <div><a href="#"><div class="kpi" style="background:rgba(0,163,137,0.1); color:var(--accent)">🔗 مشاهده</div></a></div>
+                 </div>
+               </div>`
+      },
+      alerts: {
+        title: 'فهرست هشدارهای حیاتی',
+        body: `<p>مصوبات نیازمند اقدام فوری یا با تأخیر در اجرا:</p>
+               <div class="list">
+                 <div class="row row-danger">
+                    <div>**مصوبه م۸۸-۱۴۰۴** — مهلت اجرا: **گذشته**</div>
+                    <div style="color:var(--danger);font-weight:700">اولویت: **فوری و بحرانی**</div>
+                 </div>
+                 <div class="row row-warning">
+                    <div>**مصوبه م۷۷-۱۴۰۴** — اجرای تأمین بودجه</div>
+                    <div style="color:var(--warning);font-weight:700">تأخیر: **۱۰ روز**</div>
+                 </div>
+               </div>`
+      }
+    };
+
+    // --------------------------------- توابع رندر نمودار Chart.js ---------------------------------
+    let progressChartBarInstance = null;
+    let progressChartDoughnutInstance = null;
+
+    function renderProgressCharts() {
+        // اطمینان از پاک شدن نمودارهای قبلی برای جلوگیری از تداخل
+        if (progressChartBarInstance) {
+            progressChartBarInstance.destroy();
+        }
+        if (progressChartDoughnutInstance) {
+            progressChartDoughnutInstance.destroy();
+        }
+
+        const barCtx = document.getElementById('progressChartBar').getContext('2d');
+        progressChartBarInstance = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['برنامه‌ریزی', 'عمران روستایی', 'پشتیبانی', 'استان‌ها'],
+                datasets: [{
+                    label: 'درصد تحقق',
+                    data: [85, 45, 95, 78], 
+                    backgroundColor: [
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-primary'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-danger'), 
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-secondary'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-tertiary')
+                    ],
+                    borderColor: 'white',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    hoverBackgroundColor: [ // رنگ هاور
+                        getComputedStyle(document.documentElement).getPropertyValue('--accent-2'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--danger'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--accent-2'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--accent')
+                    ],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y', 
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {display: true, text: 'درصد', color: 'var(--chart-dark-grey)', font: {family: 'Vazirmatn'}},
+                        grid: {display: false},
+                        ticks: {color: 'var(--chart-dark-grey)', font: {family: 'Vazirmatn'}}
+                    },
+                    y: {
+                        grid: {display: true, color: 'var(--chart-light-grey)'}, /* کمی خطوط افقی */
+                        ticks: {color: 'var(--chart-dark-grey)', font: {family: 'Vazirmatn'}}
+                    }
+                },
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        rtl: true, 
+                        titleFont: {family: 'Vazirmatn'}, 
+                        bodyFont: {family: 'Vazirmatn'},
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '%';
+                            }
+                        }
+                    } 
+                }
+            }
+        });
+
+        const doughnutCtx = document.getElementById('progressChartDoughnut').getContext('2d');
+        progressChartDoughnutInstance = new Chart(doughnutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['عملیاتی شده (۹۴)', 'در حال اجرا (۲۸)', 'معوق (۶)'], 
+                datasets: [{
+                    data: [94, 28, 6], 
+                    backgroundColor: [
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-primary'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-secondary'),
+                        getComputedStyle(document.documentElement).getPropertyValue('--chart-danger') 
+                    ],
+                    borderColor: 'white',
+                    borderWidth: 2,
+                    hoverOffset: 12 
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom', 
+                        rtl: true, 
+                        labels: {
+                            boxWidth: 10, 
+                            padding: 20,
+                            font: {family: 'Vazirmatn', size: 13},
+                            color: 'var(--chart-dark-grey)'
+                        }
+                    },
+                    tooltip: {
+                        rtl: true,
+                        titleFont: {family: 'Vazirmatn'}, 
+                        bodyFont: {family: 'Vazirmatn'},
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + ' مورد';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // --------------------------------- تابع اصلی نمایش پنل ---------------------------------
+    function showDetail(key){
+      const panel = document.getElementById('detail');
+      const title = document.getElementById('detail-title');
+      const body = document.getElementById('detail-body');
+      const item = details[key];
+      
+      body.innerHTML = ''; // پاکسازی قبل از تزریق محتوا
+
+      title.innerText = item.title;
+      body.innerHTML = item.body;
+      panel.style.display = 'block';
+      
+      if (item.onShow && key === 'progress') {
+        setTimeout(item.onShow, 50); 
+      }
+
+      panel.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  </script>
+</body>
+</html>
