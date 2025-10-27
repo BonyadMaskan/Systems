@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد ارزیابی مدیران کل استانی</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    
+    <style>
+        /* متغیرهای رنگی برای یکپارچگی */
+        :root {
+            --primary-color: #0d6efd; 
+            --secondary-color: #16a085; 
+            --background-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --current-positive-bar-color: rgba(13, 110, 253, 0.8); 
+            --current-negative-bar-color: rgba(220, 53, 69, 0.8); 
+            --previous-bar-color: rgba(108, 117, 125, 0.3); 
+        }
+
+        body {
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px; 
+            color: #343a40;
+            direction: rtl;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px; 
+            padding: 10px;
+            background: linear-gradient(135deg, var(--primary-color), #004085);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 25px;
+        }
+
+        .director-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end; 
+            text-align: right;
+            border-top: 6px solid var(--primary-color);
+        }
+
+        .director-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .director-info {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin-bottom: px;
+            padding-bottom: 0px;
+            border-bottom: 1px dashed #e9ecef;
+            padding-top: 0px; 
+        }
+
+        .director-image {
+            width: 100px; 
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 0 5%;
+            margin-left: 20px;
+            border: 3px solid var(--secondary-color);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            display: block; 
+        }
+
+        .province-name {
+            font-size: 1.2em; 
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .director-name {
+            font-size: 1.5em; 
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .main-score-container { 
+            width: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 0px;
+            padding: 5px 0;
+            font-size: 1.2em;
+        }
+        
+        .overall-score { 
+            font-weight: 900; 
+            font-size: 1.8em; 
+            color: var(--secondary-color);
+            margin-left: 15px;
+        }
+        
+        .trend-marker {
+            font-size: 1.0em; 
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 5px;
+            min-width: 50px;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        .trend-positive {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .trend-negative {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 170px; 
+            margin-top: 10px;
+        }
+        
+        /* Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-left: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        .loading-text {
+            text-align: center;
+            grid-column: 1 / -1;
+            font-size: 1.5em;
+            color: #6c757d;
+            padding: 60px;
+        }
+        
+        /* Modal Styles (بدون تغییر) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+        .modal-content { background-color: var(--card-bg); margin: 4% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 700px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); position: relative; }
+        .close-button { color: #aaa; float: left; font-size: 30px; font-weight: 700; transition: color 0.3s; }
+        .close-button:hover, .close-button:focus { color: #dc3545; text-decoration: none; cursor: pointer; }
+        .modal-header { display: flex; align-items: center; justify-content: flex-end; border-bottom: 2px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 20px; }
+        .modal-header img { width: 80px; height: 80px; margin-right: 15px; border: 4px solid var(--primary-color); border-radius: 50%; object-fit: cover; }
+        .modal-header div { text-align: right; margin-right: auto; }
+        .modal-header .province-name { font-size: 1.6em; color: var(--primary-color); }
+        .modal-header .director-name { font-size: 1.1em; color: #6c757d; }
+        .sub-indicators-list { list-style: none; padding: 0; }
+        .sub-indicator-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef; font-size: 1.0em; }
+        .sub-indicator-item.main-separator { font-weight: 700; background-color: #f0f8ff; padding: 10px; border-radius: 5px; margin-top: 10px; border-bottom: none; color: #0d6efd; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); }
+        .score-bar-detail { width: 50%; background-color: #e9ecef; border-radius: 5px; overflow: hidden; margin: 0 10px; }
+        .current-score-detail { height: 18px; background-color: var(--secondary-color); text-align: left; line-height: 18px; color: white; padding-right: 5px; font-size: 0.8em; transition: width 1s ease-in-out; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ارزیابی مدیران کل استانی بنیاد مسکن انقلاب اسلامی</h1>
+        <p>مقایسه عملکرد دوره جاری با میانگین دوره قبل</p>
+    </div>
+
+    <div class="container" id="cards-container">
+        <div class="loading-text">در حال بارگذاری داده‌ها...</div>
+    </div>
+
+    <div id="directorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <div id="modal-header-content" class="modal-header">
+            </div>
+            <div id="modal-sub-indicators">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwKdxgCnzDL_HwWXwNNDgU8ZVsxG8LVfHKrbtWhysDBy23LhG3QWnZvDYrOuWR-zOA7/exec";
+        const CARDS_CONTAINER = document.getElementById('cards-container');
+        const MODAL = document.getElementById('directorModal');
+        
+        // ** تعریف توابع Modal در فضای Global **
+        window.showModal = function(directorIndex) {
+            const director = directorsData[directorIndex];
+            const data = director.evaluationData;
+            
+            let modalHeaderHtml = `
+                <div>
+                    <div class="province-name">${director.provinceName}</div>
+                    <div class="director-name">مدیرکل: ${director.directorName}</div>
+                </div>
+                <img src="${director.imageURL}" alt="${director.directorName}" class="director-image">
+            `;
+            document.getElementById('modal-header-content').innerHTML = modalHeaderHtml;
+
+            let subIndicatorsHtml = '<ul class="sub-indicators-list">';
+            let subIndexCounter = 0;
+            const subIndicatorMap = {
+                'رهبری، مدیریت و بهبود عملکرد': 3, 'عملکرد فنی و اجرایی': 2, 'عملکرد مالی و اقتصادی': 2, 
+                'تعاملات و ارتباطات سازمانی': 2, 'رضایت مردمی و پاسخگویی اجتماعی': 1
+            };
+            
+            for (const mainInd of MAIN_INDICATORS) {
+                const mainScore = data.mainScores[mainInd].toFixed(1);
+                
+                subIndicatorsHtml += `<li class="sub-indicator-item main-separator">
+                    <span>${mainInd}</span>
+                    <span>میانگین دوره جاری: ${mainScore}%</span>
+                </li>`;
+
+                const count = subIndicatorMap[mainInd];
+                
+                for(let i = 0; i < count; i++) {
+                    const subLabel = SUB_INDICATORS[subIndexCounter + i];
+                    const currentScore = data.currentSubScores[subLabel];
+                    const prevScore = data.previousAvg[subLabel];
+                    const trend = currentScore - prevScore;
+                    const trendClass = trend >= 0 ? 'trend-positive' : 'trend-negative';
+                    const trendIcon = trend >= 0 ? '<i class="fa fa-caret-up"></i>' : '<i class="fa fa-caret-down"></i>';
+                    const trendText = `${trend.toFixed(1)}`;
+                    const percentage = currentScore; 
+
+                    subIndicatorsHtml += `
+                        <li class="sub-indicator-item">
+                            <span>${subLabel}</span>
+                            <div class="score-bar-detail">
+                                <div class="current-score-detail" style="width: ${percentage}%;">
+                                    ${currentScore.toFixed(1)}%
+                                </div>
+                            </div>
+                            <span class="trend-marker ${trendClass}">
+                                ${trendIcon} ${trendText}
+                            </span>
+                        </li>
+                    `;
+                }
+                subIndexCounter += count;
+            }
+            subIndicatorsHtml += '</ul>';
+            document.getElementById('modal-sub-indicators').innerHTML = subIndicatorsHtml;
+
+            MODAL.style.display = "block";
+        }
+
+        window.closeModal = function() {
+            MODAL.style.display = "none";
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == MODAL) {
+                closeModal();
+            }
+        }
+        
+        const SUB_INDICATORS = [
+            "۱. رهبری موثر", "۲. انگیزه کارکنان", "۳. عدالت در انتصابات", 
+            "۴. کیفیت فنی", "۵. پیشرفت مالی", 
+            "۶. جذب اعتبارات", "۷. شفافیت مالی", 
+            "۸. تعامل با استانداری", "۹. تعامل با ستاد", 
+            "۱۰. پاسخگویی به مردم" 
+        ];
+        
+        const MAIN_INDICATORS = [
+            'رهبری، مدیریت و بهبود عملکرد',
+            'عملکرد فنی و اجرایی',
+            'عملکرد مالی و اقتصادی',
+            'تعاملات و ارتباطات سازمانی',
+            'رضایت مردمی و پاسخگویی اجتماعی'
+        ];
+
+        function generateData(rowData) {
+            const currentScores = {};
+            const previousAvg = {};
+            const mainScores = {};
+            
+            const subIndicatorMap = {
+                'رهبری، مدیریت و بهبود عملکرد': 3,
+                'عملکرد فنی و اجرایی': 2,
+                'عملکرد مالی و اقتصادی': 2,
+                'تعاملات و ارتباطات سازمانی': 2,
+                'رضایت مردمی و پاسخگویی اجتماعی': 1
+            };
+
+            let subIndexCounter = 0;
+            let totalCurrentScore = 0;
+            let totalPreviousScore = 0;
+            let totalMainIndicators = 0;
+            
+            for (const mainInd of MAIN_INDICATORS) {
+                const count = subIndicatorMap[mainInd];
+                let sumCurrent = 0;
+                let sumPrev = 0;
+
+                for (let i = 0; i < count; i++) {
+                    const subLabel = SUB_INDICATORS[subIndexCounter + i];
+                    let current = Math.floor(Math.random() * 41) + 60; 
+                    sumCurrent += current;
+                    
+                    const trend = Math.floor(Math.random() * 10) - 4; 
+                    let previous = current - trend;
+                    if (previous < 55) previous = 55;
+                    if (previous > 100) previous = 100;
+                    
+                    sumPrev += previous;
+
+                    currentScores[subLabel] = current;
+                    previousAvg[subLabel] = previous;
+                }
+                
+                const mainScore = sumCurrent / count;
+                mainScores[mainInd] = mainScore;
+                previousAvg[mainInd] = sumPrev / count;
+
+                totalCurrentScore += mainScore;
+                totalPreviousScore += previousAvg[mainInd];
+                totalMainIndicators++;
+
+                subIndexCounter += count;
+            }
+
+            const overallAvg = totalCurrentScore / totalMainIndicators;
+            const overallPrevAvg = totalPreviousScore / totalMainIndicators;
+            
+            return {
+                mainScores: mainScores,
+                currentSubScores: currentScores,
+                previousAvg: previousAvg,
+                overallAvg: overallAvg,
+                overallPrevAvg: overallPrevAvg
+            };
+        }
+
+        // تابع برای نمایش نمودار ستونی افقی (Horizontal Bar Chart)
+        function createBarChart(canvasId, mainScores, previousAvg) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const dataLabels = Object.keys(mainScores);
+            const currentData = Object.values(mainScores);
+            const previousData = Object.values(previousAvg);
+            
+            const currentPositiveColor = getComputedStyle(document.documentElement).getPropertyValue('--current-positive-bar-color').trim();
+            const currentNegativeColor = getComputedStyle(document.documentElement).getPropertyValue('--current-negative-bar-color').trim();
+
+            const backgroundColors = currentData.map((score, index) => {
+                const prev = previousData[index];
+                return score >= prev ? currentPositiveColor : currentNegativeColor; 
+            });
+
+            const data = {
+                labels: dataLabels.map(label => label.split(',')[0].replace(' و', '/').replace('،', '/')),
+                datasets: [
+                {
+                    label: 'قبل', 
+                    data: previousData,
+                    backgroundColor: 'rgba(108, 117, 125, 0.3)', 
+                    borderColor: 'rgba(108, 117, 125, 1)',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'جاری', 
+                    data: currentData,
+                    backgroundColor: backgroundColors, 
+                    borderColor: backgroundColors.map(color => color.replace('0.8', '1')),
+                    borderWidth: 1,
+                }]
+            };
+
+            const config = {
+                type: 'bar',
+                data: data,
+                options: {
+                    indexAxis: 'y', 
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: 50,
+                            // 💡 افزایش ماکسیمم برای ایجاد فضا
+                            max: 105, 
+                            title: { display: false },
+                            ticks: { display: false }, 
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { font: { size: 10, family: 'Vazirmatn' }, color: '#343a40' },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            rtl: true,
+                            bodyFont: { family: 'Vazirmatn' },
+                            titleFont: { family: 'Vazirmatn' },
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.x.toFixed(1) + '%';
+                                }
+                            }
+                        },
+                        // 💡 تنظیمات نهایی datalabels برای قرارگیری بیرون از میله
+                        datalabels: {
+                            anchor: 'end', // نقطه لنگر: انتهای میله (سمت راست در نمودار RTL)
+                            align: 'right', // تراز متن: به سمت راست (بیرون)
+                            offset: 4, // فاصله‌ی کمی از انتهای میله
+                            font: {
+                                weight: 'bold',
+                                size: 10, 
+                                family: 'Vazirmatn'
+                            },
+                            color: function(context) {
+                                // تنظیم رنگ بر اساس دوره جاری یا دوره قبل
+                                if (context.datasetIndex === 0) { // قبل
+                                    return 'rgba(108, 117, 125, 1)'; 
+                                } else { // جاری
+                                    const score = context.dataset.data[context.dataIndex];
+                                    const prev = previousData[context.dataIndex];
+                                    // رنگ آبی یا قرمز تیره بر اساس روند
+                                    return score >= prev ? currentPositiveColor.replace('0.8', '1') : currentNegativeColor.replace('0.8', '1');
+                                }
+                            },
+                            formatter: function(value, context) {
+                                return value.toFixed(1) + '%'; 
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            };
+            
+            new Chart(ctx, config);
+        }
+
+        // تابع اصلی دریافت داده و رندر کارت‌ها
+        async function loadData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const apiResult = await response.json(); 
+                
+                CARDS_CONTAINER.innerHTML = ''; 
+
+                if (apiResult.status === "success" && Array.isArray(apiResult.data) && apiResult.data.length > 1) {
+                    
+                    directorsData = apiResult.data.slice(1).map((row, index) => {
+                        const provinceName = row[0] || 'نامشخص'; 
+                        const directorName = row[2] || 'نامشخص';
+                        const imageURL = row[3] || 'https://via.placeholder.com/70/0d6efd/ffffff?text=BM'; 
+                        
+                        const evaluationData = generateData(row);
+                        
+                        return {
+                            provinceName,
+                            directorName,
+                            imageURL,
+                            index, 
+                            evaluationData,
+                        };
+                    });
+                    
+                    directorsData.forEach(director => {
+                        const card = document.createElement('div');
+                        card.className = 'director-card';
+                        
+                        card.setAttribute('onclick', `showModal(${director.index})`); 
+                        
+                        const chartId = `chart-${director.index}`;
+                        const mainScores = director.evaluationData.mainScores;
+                        const previousAvg = director.evaluationData.previousAvg;
+                        
+                        const overallScore = director.evaluationData.overallAvg;
+                        const overallPrev = director.evaluationData.overallPrevAvg;
+                        const overallTrend = (overallScore - overallPrev).toFixed(1);
+                        const trendClass = overallTrend >= 0 ? 'trend-positive' : 'trend-negative';
+                        const trendIcon = overallTrend >= 0 ? '<i class="fa fa-caret-up"></i>' : '<i class="fa fa-caret-down"></i>';
+
+                        card.innerHTML = `
+                            <div class="director-info">
+                                <img src="${director.imageURL}" alt="${director.directorName}" class="director-image">
+                                <div>
+                                    <div class="province-name">${director.provinceName}</div>
+                                    <div class="director-name">${director.directorName}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="main-score-container">
+                                <span class="overall-score">${overallScore.toFixed(1)}%</span>
+                                <span class="trend-marker ${trendClass}">
+                                    ${trendIcon} ${overallTrend} 
+                                </span>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="${chartId}"></canvas>
+                            </div>
+                            
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span>قبل:</span> 
+                                    <span class="legend-color" style="background-color: var(--previous-bar-color); border-color: #6c757d;"></span>
+                                </div>
+                                <div class="legend-item">
+                                    <span>جاری (مثبت):</span> 
+                                    <span class="legend-color" style="background-color: var(--current-positive-bar-color); border-color: #0d6efd;"></span>
+                                </div>
+                                <div class="legend-item">
+                                    <span>جاری (منفی):</span> 
+                                    <span class="legend-color" style="background-color: var(--current-negative-bar-color); border-color: #dc3545;"></span>
+                                </div>
+                            </div>
+                        `;
+
+                        CARDS_CONTAINER.appendChild(card);
+
+                        createBarChart(
+                            chartId, 
+                            mainScores, 
+                            previousAvg
+                        );
+                    });
+
+                } else {
+                    CARDS_CONTAINER.innerHTML = '<div class="loading-text" style="color: #dc3545; font-weight: 500;">خطا: داده‌ای یافت نشد یا ساختار API نامعتبر است.</div>';
+                }
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                CARDS_CONTAINER.innerHTML = `<div class="loading-text" style="color: #dc3545; font-weight: 500;">خطا در برقراری ارتباط با API: ${error.message}</div>`;
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
