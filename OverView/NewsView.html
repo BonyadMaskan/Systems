@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>پنل اجرایی رصد و تحلیل رسانه‌ای بنیاد مسکن</title>
+
+    <!-- Vazirmatn font -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f4f6f9; }
+        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .rtl-text-left { text-align: left; direction: ltr; } /* for numeric alignment if needed */
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-8xl mx-auto space-y-8">
+
+        <!-- Header -->
+        <header class="bg-indigo-700 p-6 rounded-3xl card-shadow border-t-8 border-yellow-400">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <h1 class="text-3xl font-extrabold text-white flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 ml-3 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM6.293 7.293a1 1 0 011.414 0L10 9.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    پنل اجرایی رصد و تحلیل رسانه‌ای بنیاد مسکن
+                </h1>
+
+                <div class="flex items-center gap-3">
+                    <div class="text-sm text-gray-200 hidden md:block">
+                        📅 دوره گزارش: <span id="periodLabel">ماهانه (شهریور)</span> &nbsp; | &nbsp;
+                        🕰️ آخرین به‌روزرسانی: <span id="lastUpdate">۰۹:۰۰ صبح</span>
+                    </div>
+
+                    <!-- Time filter -->
+                    <div class="bg-white rounded-xl p-2 flex items-center gap-2">
+                        <label class="text-xs text-gray-600 ml-2">فیلتر زمانی</label>
+                        <select id="timeFilter" class="border rounded-lg px-2 py-1 text-sm" onchange="onTimeFilterChange()">
+                            <option value="month" selected>ماه</option>
+                            <option value="week">هفته</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Important analysis banner (user-specified) -->
+            <div id="globalAlert" class="mt-4 p-3 rounded-xl bg-yellow-50 border-l-4 border-yellow-500 text-sm text-gray-800">
+                <strong>📊 تحلیل:</strong> کاهش عملکرد نسبت به ماه قبل در <strong>۱۰ استان</strong> مشاهده شده.
+                <br>
+                <strong>💡 پیشنهاد اقدام:</strong> بررسی دلایل تأخیر در استان‌های <span class="font-semibold">اصفهان، خراسان جنوبی، آذربایجان شرقی</span> و <span class="font-semibold">کرمانشاه</span>.
+            </div>
+        </header>
+
+        <!-- Section: KPI Cards -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۱. شاخص‌های حیاتی و وضعیت بحران</h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
+                <!-- KPI 1 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-indigo-500 text-center">
+                    <p class="text-sm text-gray-500">حجم پوشش کل</p>
+                    <p id="kpi_coverage" class="text-3xl font-extrabold text-indigo-700 mt-1">1,850</p>
+                    <div class="mt-3 text-sm text-gray-600" id="kpi_coverage_analysis">
+                        📊 تحلیل: افزایش جزئی نسبت به دوره گذشته.
+                        <div class="mt-2 text-xs text-indigo-700 font-bold">💡 پیشنهاد: تمرکز بر خبرگزاری‌های محلی در خوزستان.</div>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-green-500 text-center">
+                    <p class="text-sm text-gray-500">احساسات مثبت (سهم)</p>
+                    <p id="kpi_positive" class="text-3xl font-extrabold text-green-600 mt-1">۶۸٪</p>
+                    <div class="mt-3 text-sm text-gray-600" id="kpi_positive_analysis">
+                        📊 تحلیل: افت ۳٪ نسبت به ماه قبل.
+                        <div class="mt-2 text-xs text-green-700 font-bold">💡 پیشنهاد: تقویت محتوای موفق در اینستاگرام و بازنشر گزارش‌های تحویل بموقع.</div>
+                    </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-red-500 text-center">
+                    <p class="text-sm text-gray-500">اخبار انتقادی جدی</p>
+                    <p id="kpi_critical" class="text-3xl font-extrabold text-red-600 mt-1">۱۲۰</p>
+                    <div class="mt-3 text-sm text-gray-600" id="kpi_critical_analysis">
+                        📊 تحلیل: تمرکز انتقادات روی موضوع تسهیلات و تاخیر پرداخت.
+                        <div class="mt-2 text-xs text-red-700 font-bold">💡 پیشنهاد: بازکردن کانال پاسخگویی شفاف برای شکایات تسهیلات.</div>
+                    </div>
+                </div>
+
+                <!-- KPI 4 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-yellow-500 text-center">
+                    <p class="text-sm text-gray-500">امتیاز کلی رضایت (از ۱۰۰)</p>
+                    <p id="kpi_satisfaction" class="text-3xl font-extrabold text-yellow-600 mt-1">۸۲</p>
+                    <div class="mt-3 text-sm text-gray-600" id="kpi_satisfaction_analysis">
+                        📊 تحلیل: امتیاز پایدار اما نیاز به تمرکز بر استان‌های منفی.
+                        <div class="mt-2 text-xs text-yellow-700 font-bold">💡 پیشنهاد: کمپین اطلاع‌رسانی محلی جهت شفاف‌سازی پروژه‌ها.</div>
+                    </div>
+                </div>
+
+                <!-- KPI 5 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-purple-500 text-center">
+                    <p class="text-sm text-gray-500">نرخ پاسخگویی رسمی</p>
+                    <p id="kpi_response_rate" class="text-3xl font-extrabold text-purple-600 mt-1">۷۵٪</p>
+                    <div class="mt-3 text-sm text-gray-600" id="kpi_response_analysis">
+                        📊 تحلیل: نرخ مناسب ولی با تأخیر در نواحی پرتماس.
+                        <div class="mt-2 text-xs text-purple-700 font-bold">💡 پیشنهاد: تخصیص تیم پاسخ‌دهی ویژه برای استان‌های پرترافیک.</div>
+                    </div>
+                </div>
+
+                <!-- KPI 6 -->
+                <div class="bg-white p-5 rounded-2xl card-shadow border-r-4 border-gray-500 text-center">
+                    <p class="text-sm text-gray-500">متوسط زمان پاسخ (ساعت)</p>
+                    <p id="kpi_avg_time" class="text-3xl font-extrabold text-gray-700 mt-1">۱۴.۵</p>
+                    <div class="mt-3 text-sm text-gray-600" id="kpi_time_analysis">
+                        📊 تحلیل: افزایش میانگین زمان پاسخ به دلیل پیک تماس.
+                        <div class="mt-2 text-xs text-gray-800 font-bold">💡 پیشنهاد: بازنگری فرآیند ثبت و ارجاع درخواست‌ها.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sentiment Comparison Chart -->
+            <div class="bg-white p-6 rounded-2xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold mb-3">📈 روند مقایسه‌ای احساسات</h3>
+                    <div class="text-sm text-gray-500">نمایش: <span id="chartPeriodLabel">ماهانه</span></div>
+                </div>
+                <div class="relative h-80">
+                    <canvas id="sentimentComparison"></canvas>
+                </div>
+                <div class="mt-3 text-sm text-gray-600" id="sentimentComparison_analysis">
+                    📊 تحلیل: رشد مثبت در هفته‌های میانی ماه؛ افت در پایان ماه. 
+                    <div class="mt-2 text-xs text-indigo-700 font-bold">💡 پیشنهاد: انتشار محتوای موفق در زمان اوج تعامل (هفته دوم).</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Deep Topic Analysis -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۲. تحلیل عمیق موضوعی و محرک‌های احساسات</h2>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl card-shadow lg:col-span-2">
+                    <h3 class="text-xl font-semibold mb-3">📊 سهم احساسات در هر حوزه فعالیت</h3>
+                    <div class="relative h-96">
+                        <canvas id="sentimentByTopic"></canvas>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-600" id="sentimentByTopic_analysis">
+                        📊 تحلیل: موضوعات «بازسازی» و «تسهیلات» بیشترین سهم منفی را دارند.
+                        <div class="mt-2 text-xs text-indigo-700 font-bold">💡 پیشنهاد: تحلیل ریشه‌ای شکایات تسهیلات و تسریع در پرداخت پروژه‌های بازسازی.</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl card-shadow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3">⭐ محرک‌های کلیدی احساسات</h3>
+                        <h4 class="font-bold text-green-600 mt-4 mb-2">✅ ۵ کلمه/عبارت با بار مثبت بالا</h4>
+                        <ul class="text-sm space-y-1">
+                            <li class="p-2 bg-green-50 rounded-lg">۱. تأمین زمین (۳۵۰ بار)</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۲. تحویل بموقع (۲۱۰ بار)</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۳. مقاوم‌سازی (۱۸۵ بار)</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۴. همکاری استانداری (۱۶۰ بار)</li>
+                            <li class="p-2 bg-green-50 rounded-lg">۵. پیشرفت فیزیکی (۱۴۰ بار)</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4">
+                        <h4 class="font-bold text-red-600 mb-2">⚠️ ۵ کلمه/عبارت با بار منفی بالا</h4>
+                        <ul class="text-sm space-y-1">
+                            <li class="p-2 bg-red-50 rounded-lg">۱. افزایش قیمت مصالح (۵۲۰ بار)</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۲. تأخیر در پرداخت (۴۳۰ بار)</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۳. بدهی پیمانکاران (۲۸۰ بار)</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۴. تسهیلات بانکی (۲۴۰ بار)</li>
+                            <li class="p-2 bg-red-50 rounded-lg">۵. بوروکراسی (۲۱۰ بار)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Media Channels & Geography -->
+        <section class="space-y-6">
+            <h2 class="text-2xl font-bold text-indigo-700 border-b-2 border-indigo-300 pb-3">۳. تحلیل کانال‌های رسانه‌ای و جغرافیایی</h2>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl card-shadow flex flex-col justify-center items-center">
+                    <h3 class="text-xl font-semibold mb-5 text-center">🌐 سهم پوشش رسانه‌ای بر اساس کانال</h3>
+                    <div class="relative h-64 w-64">
+                        <canvas id="mediaShare"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">تمرکز بیشتر بر خبرگزاری‌های داخلی و تلگرام به عنوان کانال پرانتقاد</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl card-shadow lg:col-span-2">
+                    <h3 class="text-xl font-semibold mb-3">🏛️ میزان تعامل نهادهای اجرایی (تعداد خبر)</h3>
+                    <div class="relative h-96">
+                        <canvas id="institutionActivity"></canvas>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-600" id="institutionActivity_analysis">
+                        📊 تحلیل: وزارت راه، مجلس و استانداری‌ها بیشترین تعامل خبری را دارند.
+                        <div class="mt-2 text-xs text-indigo-700 font-bold">💡 پیشنهاد: هماهنگی پیام واحد با نهادهای کلیدی برای جلوگیری از انتشار پیام‌های متناقض.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regional Hotlist -->
+            <div class="bg-white p-6 rounded-2xl card-shadow">
+                <h3 class="text-xl font-semibold mb-3">📍 استان‌های دارای بالاترین حجم پوشش رسانه‌ای</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-center">
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-red-500">
+                        <p class="text-sm text-red-700 font-bold">خوزستان</p>
+                        <p class="text-xs text-gray-600">۸۰ خبر (۶۵٪ منفی)</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-blue-500">
+                        <p class="text-sm text-blue-700 font-bold">اصفهان</p>
+                        <p class="text-xs text-gray-600">۵۵ خبر (۶۰٪ منفی)</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-orange-500">
+                        <p class="text-sm text-orange-700 font-bold">مازندران</p>
+                        <p class="text-xs text-gray-600">۴۷ خبر (۵۰٪ خنثی)</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-green-500">
+                        <p class="text-sm text-green-700 font-bold">کرمانشاه</p>
+                        <p class="text-xs text-gray-600">۴۲ خبر (۸۵٪ مثبت)</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-red-500">
+                        <p class="text-sm text-red-700 font-bold">آذربایجان شرقی</p>
+                        <p class="text-xs text-gray-600">۴۵ خبر (۵۵٪ منفی)</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 rounded-xl border-b-2 border-blue-500">
+                        <p class="text-sm text-blue-700 font-bold">تهران</p>
+                        <p class="text-xs text-gray-600">۶۰ خبر (۶۰٪ مثبت)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tools & Action Bar -->
+        <div class="flex flex-wrap justify-around items-center bg-white p-4 rounded-2xl card-shadow border-t-4 border-indigo-600 mt-8">
+            <button class="bg-indigo-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-indigo-700 transition shadow-md flex items-center">
+                گزارش نقاط قوت
+            </button>
+            <button class="bg-red-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-red-700 transition shadow-md flex items-center">
+                لیست انتقادات اولویت‌دار
+            </button>
+            <button class="bg-green-600 text-white px-5 py-2 m-2 rounded-xl hover:bg-green-700 transition shadow-md flex items-center">
+                ارسال گزارش به‌روزرسانی
+            </button>
+        </div>
+    </div>
+
+    <!-- JS: data (فرضی نزدیک به واقعیت) و منطق فیلتر -->
+    <script>
+        // register plugin
+        Chart.register(ChartDataLabels);
+        Chart.defaults.font.family = 'Vazirmatn';
+        Chart.defaults.font.size = 12;
+        Chart.defaults.plugins.legend.rtl = true;
+        Chart.defaults.plugins.tooltip.rtl = true;
+
+        // فرضی: داده‌ها برای دو حالت month و week
+        const DATA = {
+            month: {
+                // KPIs
+                kpis: {
+                    coverage: 1850,
+                    positive: 68,
+                    critical: 120,
+                    satisfaction: 82,
+                    responseRate: 75,
+                    avgTime: 14.5
+                },
+                sentimentComparison: {
+                    labels: ['هفته ۱','هفته ۲','هفته ۳','هفته ۴'],
+                    datasets: [
+                        { label: 'مثبت (ماه جاری)', data: [65,70,68,72], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', fill:true, tension:0.3, borderWidth:3 },
+                        { label: 'مثبت (ماه قبل)', data: [60,65,62,68], borderColor:'#9ca3af', backgroundColor:'rgba(156,163,175,0.08)', fill:false, tension:0.3, borderDash:[6,6] }
+                    ]
+                },
+                sentimentByTopic: {
+                    labels: ['مسکن روستایی','نهضت ملی مسکن','بازسازی بحران','توسعه زیرساخت','تعامل با دولت'],
+                    datasets: [
+                        { label:'مثبت', data:[55,40,75,60,45], backgroundColor:'#10b981' },
+                        { label:'خنثی', data:[35,30,15,25,35], backgroundColor:'#facc15' },
+                        { label:'منفی', data:[10,30,10,15,20], backgroundColor:'#ef4444' }
+                    ]
+                },
+                mediaShare: {
+                    labels:['خبرگزاری‌های داخلی','نهادهای رسمی','فضای مجازی','رسانه‌های خارجی'],
+                    data:[45,25,28,2]
+                },
+                institutionActivity: {
+                    labels:['وزارت راه و شهرسازی','مجلس شورای اسلامی','استانداران','سازمان برنامه و بودجه','وزارت کشور','بانک مرکزی'],
+                    data:[150,120,95,70,60,40]
+                }
+            },
+
+            week: {
+                kpis: {
+                    coverage: 520,
+                    positive: 70,
+                    critical: 30,
+                    satisfaction: 84,
+                    responseRate: 78,
+                    avgTime: 12.2
+                },
+                sentimentComparison: {
+                    labels: ['دوشنبه','چهارشنبه','جمعه'],
+                    datasets: [
+                        { label: 'مثبت (هفته جاری)', data: [68,71,70], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', fill:true, tension:0.3, borderWidth:3 },
+                        { label: 'مثبت (هفته قبل)', data: [66,69,67], borderColor:'#9ca3af', backgroundColor:'rgba(156,163,175,0.08)', fill:false, tension:0.3, borderDash:[6,6] }
+                    ]
+                },
+                sentimentByTopic: {
+                    labels: ['مسکن روستایی','نهضت ملی مسکن','بازسازی بحران','توسعه زیرساخت','تعامل با دولت'],
+                    datasets: [
+                        { label:'مثبت', data:[60,42,72,58,48], backgroundColor:'#10b981' },
+                        { label:'خنثی', data:[30,35,18,28,32], backgroundColor:'#facc15' },
+                        { label:'منفی', data:[10,23,10,14,20], backgroundColor:'#ef4444' }
+                    ]
+                },
+                mediaShare: {
+                    labels:['خبرگزاری‌های داخلی','نهادهای رسمی','فضای مجازی','رسانه‌های خارجی'],
+                    data:[48,20,30,2]
+                },
+                institutionActivity: {
+                    labels:['وزارت راه و شهرسازی','مجلس شورای اسلامی','استانداران','سازمان برنامه و بودجه','وزارت کشور','بانک مرکزی'],
+                    data:[40,35,30,22,18,12]
+                }
+            }
+        };
+
+        // Chart holders
+        let charts = {};
+
+        function createChart(id, config) {
+            const ctx = document.getElementById(id).getContext('2d');
+            return new Chart(ctx, config);
+        }
+
+        // create initial charts (month)
+        function initCharts(mode='month') {
+            const m = DATA[mode];
+
+            // sentimentComparison (line)
+            if (charts.sentimentComparison) charts.sentimentComparison.destroy();
+            charts.sentimentComparison = createChart('sentimentComparison', {
+                type: 'line',
+                data: m.sentimentComparison,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: false, min: 40, max: 100, title: { display: true, text: 'درصد احساسات مثبت' } } },
+                    plugins: { legend: { position: 'bottom' }, datalabels:{display:false} }
+                }
+            });
+
+            // sentimentByTopic (stacked bar)
+            if (charts.sentimentByTopic) charts.sentimentByTopic.destroy();
+            charts.sentimentByTopic = createChart('sentimentByTopic', {
+                type: 'bar',
+                data: m.sentimentByTopic,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x:{ stacked:true }, y:{ stacked:true, beginAtZero:true, max:100, title:{display:true,text:'درصد کل پوشش موضوعی'} } },
+                    plugins: { legend:{ position:'bottom' } }
+                }
+            });
+
+            // mediaShare (doughnut)
+            if (charts.mediaShare) charts.mediaShare.destroy();
+            charts.mediaShare = createChart('mediaShare', {
+                type: 'doughnut',
+                data: {
+                    labels: m.mediaShare.labels,
+                    datasets: [{ data: m.mediaShare.data, backgroundColor:['#4f46e5','#a855f7','#f97316','#64748b'] }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position:'bottom' },
+                        datalabels: {
+                            formatter: (value, ctx) => {
+                                let sum = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                                return (value*100/sum).toFixed(1) + '%';
+                            },
+                            color:'#fff',
+                            font:{weight:'600'}
+                        }
+                    }
+                }
+            });
+
+            // institutionActivity (horizontal bar)
+            if (charts.institutionActivity) charts.institutionActivity.destroy();
+            charts.institutionActivity = createChart('institutionActivity', {
+                type: 'bar',
+                data: {
+                    labels: m.institutionActivity.labels,
+                    datasets: [{ label:'تعداد خبر مشترک', data: m.institutionActivity.data, backgroundColor:'#4f46e5', borderRadius:8 }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { beginAtZero:true, title:{display:true,text:'تعداد خبر'} } },
+                    plugins: { legend:{ display:false }, datalabels: { anchor: 'end', align: 'end', formatter: (v)=>v } }
+                }
+            });
+        }
+
+        // update KPI DOMs and analyses based on mode
+        function updateKPIs(mode='month') {
+            const k = DATA[mode].kpis;
+            document.getElementById('kpi_coverage').textContent = numberWithCommas(k.coverage);
+            document.getElementById('kpi_positive').textContent = k.positive + '%';
+            document.getElementById('kpi_critical').textContent = k.critical;
+            document.getElementById('kpi_satisfaction').textContent = k.satisfaction;
+            document.getElementById('kpi_response_rate').textContent = k.responseRate + '%';
+            document.getElementById('kpi_avg_time').textContent = k.avgTime;
+
+            // Simple auto-analysis rules (مثالی و قابل توسعه)
+            document.getElementById('kpi_coverage_analysis').innerHTML = `📊 تحلیل: حجم پوشش در دوره انتخاب‌شده برابر ${numberWithCommas(k.coverage)} خبر است. <div class="mt-2 text-xs text-indigo-700 font-bold">💡 پیشنهاد: تمرکز بر استان‌های با نرخ منفی بالا.</div>`;
+
+            let posTrend = mode === 'month' ? 'افت ۳٪ نسبت به ماه قبل' : 'ثبات یا رشد جزئی';
+            document.getElementById('kpi_positive_analysis').innerHTML = `📊 تحلیل: ${posTrend}. <div class="mt-2 text-xs text-green-700 font-bold">💡 پیشنهاد: تقویت محتوای مثبت بر بستر اینستاگرام و بازنشر گزارش‌های موفق.</div>`;
+
+            document.getElementById('kpi_critical_analysis').innerHTML = `📊 تحلیل: اخبار انتقادی بالغ بر ${k.critical} مورد ثبت شده‌اند. <div class="mt-2 text-xs text-red-700 font-bold">💡 پیشنهاد: تیم پاسخگوی فوری برای موضوعات تسهیلات تشکیل دهید.</div>`;
+
+            document.getElementById('kpi_satisfaction_analysis').innerHTML = `📊 تحلیل: امتیاز رضایت ${k.satisfaction} از ۱۰۰ ثبت شده است. <div class="mt-2 text-xs text-yellow-700 font-bold">💡 پیشنهاد: کمپین شفاف‌سازی محلی راه‌اندازی شود.</div>`;
+
+            document.getElementById('kpi_response_analysis').innerHTML = `📊 تحلیل: نرخ پاسخگویی ${k.responseRate}٪. <div class="mt-2 text-xs text-purple-700 font-bold">💡 پیشنهاد: تخصیص نیروی پاسخگو بر اساس استان‌های دارای بیشترین تماس.</div>`;
+
+            document.getElementById('kpi_time_analysis').innerHTML = `📊 تحلیل: متوسط زمان پاسخ ${k.avgTime} ساعت است. <div class="mt-2 text-xs text-gray-800 font-bold">💡 پیشنهاد: بازنگری فرایند ارجاع درخواست‌ها و اولویت‌بندی موارد بحرانی.</div>`;
+        }
+
+        // number format
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // on time filter change
+        function onTimeFilterChange() {
+            const mode = document.getElementById('timeFilter').value;
+            document.getElementById('periodLabel').textContent = mode === 'month' ? 'ماهانه (شهریور)' : 'هفتگی (هفته جاری)';
+            document.getElementById('chartPeriodLabel').textContent = mode === 'month' ? 'ماهانه' : 'هفتگی';
+            initCharts(mode);
+            updateKPIs(mode);
+
+            // update global alert logic (example: if month and many negatives)
+            if (mode === 'month') {
+                document.getElementById('globalAlert').innerHTML = '<strong>📊 تحلیل:</strong> کاهش عملکرد نسبت به ماه قبل در <strong>۱۰ استان</strong> مشاهده شده.<br><strong>💡 پیشنهاد اقدام:</strong> بررسی دلایل تأخیر در استان‌های <span class="font-semibold">اصفهان، خراسان جنوبی، آذربایجان شرقی</span> و <span class="font-semibold">کرمانشاه</span>.';
+                document.getElementById('globalAlert').className = 'mt-4 p-3 rounded-xl bg-yellow-50 border-l-4 border-yellow-500 text-sm text-gray-800';
+            } else {
+                document.getElementById('globalAlert').innerHTML = '<strong>📊 تحلیل:</strong> وضعیت هفته جاری نسبتاً باثبات است؛ برخی استان‌ها علائم نوسان نشان می‌دهند.<br><strong>💡 پیشنهاد اقدام:</strong> رصد روزانه و پاسخ سریع به موضوعات تسهیلاتی در استان‌های پرتعامل.';
+                document.getElementById('globalAlert').className = 'mt-4 p-3 rounded-xl bg-blue-50 border-l-4 border-blue-500 text-sm text-gray-800';
+            }
+        }
+
+        // init
+        document.addEventListener('DOMContentLoaded', function(){
+            initCharts('month');
+            updateKPIs('month');
+        });
+    </script>
+</body>
+</html>
