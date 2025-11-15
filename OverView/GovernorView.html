@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استانداران جمهوری اسلامی ایران</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMD5iL1I5H0U+0D/U0C8VlM9E/JqT2FwE/u3k5P1P+O+E1/K5T/4y2k/2n+4g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --bg-light: #f8f9fa;
+            --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            --border-radius: 10px;
+            --btn-blue: #007bff;
+            --btn-dark: #34495e;
+            --text-dark: #212529;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 15px;
+            text-align: right;
+            line-height: 1.5;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .title {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 2.2em;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 8px;
+            display: block;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* طراحی کارت‌ها */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            border-top: 1px solid #4a534b;
+            border-right: 1px solid #4a534b;
+
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        .governor-image {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-position: 0 5%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 0px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-top: 0px;
+        }
+
+        .province-name {
+            font-size: 1em;
+            color: var(--secondary-color);
+            margin-bottom: -10px;
+            line-height: 1.2;
+        }
+
+        .governor-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0;
+            line-height: 1;
+        }
+
+        /* استایل‌های Modal (پاپ‌آپ) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+            text-align: right;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: left;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* استایل هدر پاپ‌آپ اصلی */
+        .modal-governor-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: 0 5%;
+            border: 4px solid var(--primary-color);
+            margin-left: 20px;
+            float: right;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header h2 {
+            font-size: 1.5em;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .modal-header p {
+            font-size: 1.1em;
+            color: var(--secondary-color);
+            margin: 5px 0 20px 0;
+        }
+
+        .modal-header::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .modal-info {
+            display: flex;
+            flex-direction: column;
+            padding-right: 140px;
+        }
+
+        /* دکمه‌های آیکونی */
+        .modal-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .modal-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 0.95em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            text-decoration: none;
+            color: #fff;
+            text-align: center;
+        }
+        
+        .modal-button.link-btn {
+            background-color: var(--btn-dark);
+        }
+        .modal-button.link-btn:hover {
+            background-color: #2c3e50;
+            transform: translateY(-2px);
+        }
+        
+        .modal-button.profile-btn {
+            background-color: #dc3545;
+        }
+        .modal-button.profile-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .modal-button i {
+            margin-left: 8px;
+        }
+
+        /* استایل Modal پروفایل (برای نمایش محتوای ستون F) */
+        #profile-modal .modal-content {
+            max-width: 800px;
+        }
+        
+        /* استایل جدید هدر پاپ‌آپ پروفایل */
+        #profile-modal .modal-header-profile {
+            display: flex;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        #profile-modal .profile-image-small {
+            width: 70px; /* اندازه جدید 70px */
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-left: 15px;
+        }
+
+        #profile-modal .profile-info-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #profile-modal .profile-info-text h3 {
+            font-size: 1.2em;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        #profile-modal .profile-info-text p {
+            font-size: 0.9em;
+            color: var(--secondary-color);
+            margin: 2px 0 0 0;
+        }
+
+        #profile-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            text-align: justify;
+        }
+
+        .loading-message, .error-message {
+            text-align: center;
+            font-size: 1.1em;
+            padding: 20px;
+            color: var(--secondary-color);
+        }
+
+        .error-message {
+            color: #dc3545;
+            border: 1px solid #dc3545;
+            background-color: #f8d7da;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="title">استانداران جمهوری اسلامی ایران 🇮🇷</h1>
+        <div id="governors-list" class="cards-grid">
+        </div>
+        <div id="loading" class="loading-message">
+            <p>درحال فراخوانی داده‌ها...</p>
+        </div>
+        <div id="error" class="error-message" style="display:none;"></div>
+    </div>
+
+    <div id="main-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('main-modal')">&times;</span>
+            
+            <div class="modal-header">
+                <img id="modal-governor-image" src="" alt="تصویر استاندار" class="modal-governor-image">
+                <div class="modal-info">
+                    <h2 id="modal-governor-name"></h2>
+                    <p id="modal-province-name"></p>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="profile-btn" class="modal-button profile-btn" onclick="openProfileModal(this.getAttribute('data-profile-content'), this.getAttribute('data-governor-name'), this.getAttribute('data-province-name'), this.getAttribute('data-image-url'))">
+                    <i class="fas fa-id-card"></i> پروفایل استاندارد
+                </button>
+                
+                <a id="meetings-link" href="#" target="_blank" class="modal-button link-btn"><i class="fas fa-handshake"></i> جلسات و دیدارها</a>
+                <a id="positions-link" href="#" target="_blank" class="modal-button link-btn"><i class="fas fa-bullhorn"></i> مواضع و مصاحبه‌ها</a>
+                <a id="performance-link" href="#" target="_blank" class="modal-button link-btn"><i class="fas fa-city"></i> عملکرد بنیاد در استان</a>
+                <a id="analysis-link" href="#" target="_blank" class="modal-button link-btn"><i class="fas fa-chart-line"></i> تحلیل و ارزیابی</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('profile-modal')">&times;</span>
+            
+            <div class="modal-header-profile">
+                <img id="profile-image-small" src="" alt="تصویر استاندار" class="profile-image-small">
+                <div class="profile-info-text">
+                    <h3 id="profile-governor-name"></h3>
+                    <p id="profile-province-name"></p>
+                </div>
+            </div>
+
+            <div id="profile-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // *** مهم: لینک زیر را با آدرس Web App ای که از Apps Script دریافت کردید جایگزین کنید ***
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzJUZhSVRYBashS033znprq8RMLf3kRq7WwipwYAXblwJ4R1MetQdwEL3XqjCdwAys/exec';
+        
+        const listContainer = document.getElementById('governors-list');
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+
+        // توابع Modal
+        function openModal(item) {
+            const mainModal = document.getElementById('main-modal');
+            const profileBtn = document.getElementById('profile-btn');
+            
+            // پر کردن اطلاعات هدر پاپ‌آپ اصلی
+            document.getElementById('modal-governor-image').src = item.image_url;
+            document.getElementById('modal-governor-name').textContent = item.governor_name;
+            document.getElementById('modal-province-name').textContent = 'استان: ' + item.province;
+            
+            // **تنظیم تمام داده‌های مورد نیاز برای پاپ‌آپ دوم (پروفایل) روی دکمه پروفایل**
+            profileBtn.setAttribute('data-profile-content', item.profile_content || 'محتوایی برای نمایش یافت نشد.');
+            profileBtn.setAttribute('data-governor-name', item.governor_name);
+            profileBtn.setAttribute('data-province-name', item.province);
+            profileBtn.setAttribute('data-image-url', item.image_url);
+            
+            // تنظیم لینک‌ها (اگر لینک موجود باشد، دکمه فعال و قابل کلیک است، در غیر این صورت غیرفعال می‌شود)
+            const links = [
+                { id: 'meetings-link', link: item.meetings_link }, // H
+                { id: 'positions-link', link: item.positions_link }, // G
+                { id: 'performance-link', link: item.performance_link }, // I
+                { id: 'analysis-link', link: item.analysis_link } // J
+            ];
+
+            links.forEach(linkInfo => {
+                const element = document.getElementById(linkInfo.id);
+                if (linkInfo.link && String(linkInfo.link).trim().startsWith('http')) {
+                    element.href = linkInfo.link;
+                    element.style.pointerEvents = 'auto';
+                    element.style.opacity = '1';
+                    element.target = '_blank';
+                } else {
+                    element.href = '#';
+                    element.style.pointerEvents = 'none';
+                    element.style.opacity = '0.6';
+                    element.target = '_self';
+                }
+            });
+
+            // نمایش پاپ‌آپ اصلی
+            mainModal.style.display = 'block';
+        }
+
+        // تابع باز کردن پاپ‌آپ محتوای پروفایل (ستون F)
+        function openProfileModal(content, governorName, provinceName, imageUrl) {
+            const profileModal = document.getElementById('profile-modal');
+            const mainModal = document.getElementById('main-modal');
+
+            // مخفی کردن پاپ‌آپ اصلی
+            mainModal.style.display = 'none';
+
+            // **تنظیم هدر پاپ‌آپ پروفایل با اطلاعات استاندار**
+            document.getElementById('profile-image-small').src = imageUrl || 'https://via.placeholder.com/70/CCCCCC/FFFFFF?text=خطا';
+            document.getElementById('profile-governor-name').textContent = governorName;
+            document.getElementById('profile-province-name').textContent = 'استان: ' + provinceName;
+
+
+            // پر کردن محتوای پروفایل
+            document.getElementById('profile-content').textContent = content;
+
+            // نمایش پاپ‌آپ پروفایل
+            profileModal.style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // بستن Modal با کلیک خارج از آن
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('main-modal')) {
+                closeModal('main-modal');
+            }
+            if (event.target == document.getElementById('profile-modal')) {
+                closeModal('profile-modal');
+                // اگر پاپ‌آپ پروفایل بسته شد، می‌توانیم پاپ‌آپ اصلی را دوباره نمایش دهیم (اختیاری)
+                // document.getElementById('main-modal').style.display = 'block';
+            }
+        }
+
+        async function fetchGovernorData() {
+            loadingElement.style.display = 'block';
+            listContainer.innerHTML = '';
+            errorElement.style.display = 'none';
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`خطای شبکه: ${response.status}`);
+                }
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(`خطای سمت سرور (Apps Script): ${data.error}`);
+                }
+
+                if (data.length === 0) {
+                    listContainer.innerHTML = '<div class="loading-message">داده‌ای در شیت یافت نشد.</div>';
+                    return;
+                }
+
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.onclick = () => openModal(item);
+
+                    const img = document.createElement('img');
+                    img.src = item.image_url || 'https://via.placeholder.com/90/CCCCCC/FFFFFF?text=No+Img';
+                    img.alt = `تصویر ${item.governor_name}`;
+                    img.className = 'governor-image';
+                    img.onerror = function() {
+                        this.src = 'https://via.placeholder.com/90/CCCCCC/FFFFFF?text=خطا';
+                    };
+
+                    const provinceP = document.createElement('p');
+                    provinceP.className = 'province-name';
+                    provinceP.textContent = item.province;
+
+                    const governorH = document.createElement('h3');
+                    governorH.className = 'governor-name';
+                    governorH.textContent = item.governor_name;
+
+                    card.appendChild(img);
+                    card.appendChild(provinceP);
+                    card.appendChild(governorH);
+                    listContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                errorElement.textContent = `متاسفانه در دریافت داده‌ها خطایی رخ داد: ${error.message}`;
+                errorElement.style.display = 'block';
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        // فراخوانی تابع برای بارگذاری داده‌ها پس از آماده شدن صفحه
+        fetchGovernorData();
+    </script>
+
+</body>
+</html>
