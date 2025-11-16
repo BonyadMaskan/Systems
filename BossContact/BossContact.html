@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به سامانه</title>
+    <style>
+        /* تنظیمات پایه برای کل صفحه */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* جلوگیری از اسکرول */
+            font-family: Tahoma, sans-serif;
+            background-color: #000; /* در صورت عدم تطابق ابعاد، فضای خالی را مشکی نشان دهد */
+        }
+
+        /* کانتینر اصلی برای تصویر و محتوا */
+        .container {
+            width: 100%;
+            height: 100%;
+            /* ⭐️ تغییر کلیدی: contain به جای cover برای فیت شدن کامل تصویر */
+            background-size: contain; 
+            background-position: center; /* مرکز قرارگیری تصویر */
+            background-repeat: no-repeat; /* جلوگیری از تکرار تصویر در صورت خالی ماندن فضا */
+            
+            display: flex; /* استفاده از فلکس‌باکس برای قرار دادن دکمه */
+            flex-direction: column;
+            justify-content: flex-end; /* قرار دادن محتوا در پایین */
+            align-items: center; /* مرکز قرار دادن محتوا افقی */
+            position: relative;
+        }
+
+        /* 🖼️ حالت عمودی (Portrait) - پیش‌فرض */
+        .container {
+            background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPageLand.png');
+        }
+
+        /* 📐 Media Query برای حالت افقی (Landscape) */
+        @media (orientation: landscape) {
+            .container {
+                background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPage.png');
+            }
+        }
+
+        /* 🔘 استایل دکمه ورود به سامانه */
+        .entry-button {
+            text-decoration: none; 
+            color: #fff; 
+            background-color: #007bff; 
+            border: none;
+            padding: 12px 25px;
+            margin-bottom: 20px; /* فاصله از پایین صفحه */
+            border-radius: 8px; 
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); 
+            z-index: 10; /* اطمینان از قرارگیری روی تصویر */
+        }
+
+        .entry-button:hover {
+            background-color: #0056b3; 
+            transform: translateY(-2px); 
+        }
+        
+        /* 📱 استایل‌های اختصاصی برای موبایل */
+        @media (max-width: 768px) {
+            .entry-button {
+                padding: 15px 30px;
+                font-size: 20px;
+                margin-bottom: 30px; 
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a 
+            href="https://survey.porsline.ir/s/nFTLsFS0" 
+            class="entry-button" 
+            target="_blank" 
+            rel="noopener noreferrer"
+        >
+            ورود به سامانه
+        </a>
+    </div>
+</body>
+</html>
