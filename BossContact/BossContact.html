@@ -12,7 +12,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: Tahoma, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* فونت مدرن‌تر */
             background-color: #000;
         }
 
@@ -26,53 +26,61 @@
             
             display: flex; 
             flex-direction: column;
-            justify-content: flex-end; 
+            justify-content: flex-end; /* دکمه را در پایین کانتینر نگه می‌دارد */
             align-items: center; 
             position: relative;
         }
 
-        /* 🖼️ حالت عمودی (Portrait) - پیش‌فرض */
-        /* این حالت (ارتفاع بیشتر از عرض) باید از FirstPage.png استفاده کند. */
+        /* 🖼️ حالت عمودی (Portrait) */
         .container {
             background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPage.png');
         }
 
         /* 📐 Media Query برای حالت افقی (Landscape) */
-        /* این حالت (عرض بیشتر از ارتفاع) باید از FirstPageLand.png استفاده کند. */
         @media (orientation: landscape) {
             .container {
                 background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPageLand.png');
             }
         }
 
-        /* 🔘 استایل دکمه ورود به سامانه */
+        /* 🔘 استایل دکمه "ورود به سامانه" - تغییرات اصلی اینجا اعمال شده */
         .entry-button {
             text-decoration: none; 
             color: #fff; 
-            background-color: #007bff; 
+            /* ⭐️ تغییر رنگ به گرادیانت */
+            background-image: linear-gradient(to right, #7b4397, #dc2430); /* گرادیانت از بنفش به قرمز */
+            /* می‌توانید از رنگ ساده هم استفاده کنید: background-color: #dc2430; */
             border: none;
-            padding: 12px 25px;
-            margin-bottom: 20px; 
-            border-radius: 8px; 
-            font-size: 18px;
-            font-weight: bold;
+            /* ⭐️ باریک‌تر کردن دکمه با کاهش padding افقی */
+            padding: 12px 20px; /* قبلاً 12px 25px بود */
+            /* ⭐️ بالا آوردن دکمه با افزایش margin-bottom */
+            margin-bottom: 70px; /* فاصله بیشتر از پایین (قبلاً 20px بود) */
+            /* ⭐️ گوشه‌های گردتر برای زیبایی بیشتر */
+            border-radius: 25px; /* قبلاً 8px بود */
+            font-size: 19px; /* کمی بزرگتر */
+            font-weight: 600; /* وزن فونت متوسط */
+            letter-spacing: 0.5px; /* فاصله بین حروف */
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4); 
+            transition: all 0.3s ease; /* انیمیشن نرم‌تر */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* سایه عمیق‌تر و زیباتر */
             z-index: 10;
         }
 
         .entry-button:hover {
-            background-color: #0056b3; 
-            transform: translateY(-2px); 
+            /* ⭐️ تغییر رنگ در هاور برای گرادیانت */
+            background-image: linear-gradient(to right, #dc2430, #7b4397); /* تغییر جهت گرادیانت در هاور */
+            /* در صورت استفاده از رنگ ساده: background-color: #a61c28; */
+            transform: translateY(-3px) scale(1.02); /* کمی به بالا می‌آید و کمی بزرگ‌تر می‌شود */
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4); /* سایه بیشتر در هاور */
         }
         
-        /* 📱 استایل‌های اختصاصی برای موبایل */
+        /* 📱 استایل‌های اختصاصی برای موبایل - دکمه بزرگتر در موبایل */
         @media (max-width: 768px) {
             .entry-button {
-                padding: 15px 30px;
-                font-size: 20px;
-                margin-bottom: 30px; 
+                padding: 15px 25px; /* باریک‌تر کردن برای موبایل */
+                font-size: 22px; /* بزرگتر کردن فونت برای خوانایی بهتر در موبایل */
+                margin-bottom: 90px; /* فاصله بیشتر در موبایل */
+                border-radius: 30px;
             }
         }
 
