@@ -32,16 +32,16 @@
         }
 
         /* 🖼️ حالت عمودی (Portrait) - پیش‌فرض */
-        /* در این حالت (عرض کوچکتر از ارتفاع)، تصویر FirstPageLand.png باید نمایش داده شود. */
+        /* این حالت (ارتفاع بیشتر از عرض) باید از FirstPage.png استفاده کند. */
         .container {
-            background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPageLand.png');
+            background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPage.png');
         }
 
         /* 📐 Media Query برای حالت افقی (Landscape) */
-        /* در این حالت (عرض بزرگتر از ارتفاع)، تصویر FirstPage.png باید نمایش داده شود. */
+        /* این حالت (عرض بیشتر از ارتفاع) باید از FirstPageLand.png استفاده کند. */
         @media (orientation: landscape) {
             .container {
-                background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPage.png');
+                background-image: url('https://bonyadmaskan.github.io/Systems/BossContact/FirstPageLand.png');
             }
         }
 
