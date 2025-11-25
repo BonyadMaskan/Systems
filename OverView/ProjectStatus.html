@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>داشبورد مدیریتی پروژه‌ها — بنیاد مسکن</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap RTL -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bonyad-blue: #006eb8;
+      --bonyad-accent: #0ea5a3;
+      --card-bg: linear-gradient(180deg,#ffffff,#f8fbff);
+      --glass: rgba(255,255,255,0.7);
+      --shadow: 0 8px 30px rgba(2,6,23,0.08);
+      --radius: 14px;
+    }
+    body{ background: #eef6f9; font-family: 'Vazirmatn','Vazir',sans-serif; color:#123; }
+    .navbar{ background: linear-gradient(90deg,#4d7b9b,#004268);  box-shadow: var(--shadow); }
+    .brand-logo { width:70px; height:65px; border-radius:6px; background:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:700; font-size:50px; padding-top:12px; margin-left:20px;}
+    .card-ui { 
+background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); border:none;
+border-top: 5px solid #0049a8;
+ }
+    .kpi { padding:14px; border-radius:12px; background:linear-gradient(180deg,#fff,#f7fcff); box-shadow:0 6px 18px rgba(2,6,23,0.04); }
+    #map{ height:520px; border-radius:12px; box-shadow: 0 10px 30px rgba(2,6,23,0.08); }
+    .project-list-item{ cursor:pointer; transition: all .18s ease; }
+    .project-list-item:hover{ transform: translateY(-4px); background:linear-gradient(90deg, rgba(14,165,163,0.05), transparent); }
+    .badge-prog{ min-width:64px; display:inline-block; text-align:center; border-radius:10px; padding:6px 8px; font-weight:600; }
+    .type-chip{ display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px; font-size:13px; background:#f3f6f8; box-shadow:inset 0 -2px 0 rgba(0,0,0,0.02); }
+    .legend-item{ display:flex; gap:10px; align-items:center; }
+    .sat-preview { width:100%; height:160px; object-fit:cover; border-radius:8px; }
+    .tiny-muted{ font-size:13px; color:#1000c8; }
+    .icon-circle{ width:36px;height:36px;border-radius:8px; display:inline-flex; align-items:center; justify-content:center; color:white; }
+    .icon-hadi{ background:#0ea5a3; }    /* teal */
+    .icon-reno{ background:#f59e0b; }    /* amber */
+    .icon-national{ background:#0369a1; }/* blue */
+    .icon-disaster{ background:#ef4444; }/* red */
+    .filter-select{ max-width:220px; }
+    .controls-row{ gap:12px; display:flex; align-items:center; flex-wrap:wrap; }
+    .scroll-list{ max-height:340px; overflow:auto; padding-right:6px; }
+    /* responsive tweaks */
+    @media (max-width: 992px){
+      #map{ height:360px; }
+      .scroll-list{ max-height:220px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark py-3">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center gap-3" href="https://bonyadmaskan.github.io/Systems/OverView/GisView.html" target="_blank">
+        <span class="brand-logo">🌍</span>
+        <div class="d-flex flex-column">
+          <strong style="line-height:2; font-size:30px;">داشبورد مدیریتی پروژه‌های بنیاد مسکن انقلاب اسلامی</strong>
+          <small class="" style="font-size:20px; text-color:red;">مدیریت پروژه‌ها | طرح‌های هادی — نوسازی — نهضت ملی — بازسازی</small>
+        </div>
+      </a>
+      <div class="d-flex ms-auto align-items-center">
+        <small class="text-white me-3">آخرین بروزرسانی: <strong id="lastUpdated">—</strong></small>
+        <button class="btn btn-outline-light btn-sm" onclick="resetAll()">ریست نمایش</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid my-4">
+    <div class="row g-3">
+
+      <!-- LEFT COLUMN: Filters + KPIs -->
+      <div class="col-lg-3">
+        <div class="card-ui p-3 mb-3">
+          <h6 class="mb-2"><i class="bi bi-funnel-fill text-primary"></i> فیلترها</h6>
+          <div class="controls-row mb-2">
+            <select id="provinceFilter" class="form-select filter-select">
+              <option value="">همه استان‌ها</option>
+            </select>
+            <select id="topicFilter" class="form-select filter-select">
+              <option value="">همه موضوعات</option>
+              <option value="Hadi">🟩 طرح هادی</option>
+              <option value="Renovation">🟧 نوسازی و بهسازی</option>
+              <option value="National">🔵 نهضت ملی مسکن</option>
+              <option value="Disaster">🔴 بازسازی سوانح</option>
+            </select>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary btn-sm w-50" onclick="applyFilters()">اعمال</button>
+            <button class="btn btn-outline-secondary btn-sm w-50" onclick="clearFilters()">پاک‌سازی</button>
+          </div>
+        </div>
+
+        <div class="card-ui p-3 mb-3">
+          <h6 class="mb-3"><i class="bi bi-bar-chart-line-fill text-success"></i> شاخص‌های کلیدی (KPIs)</h6>
+          <div class="row g-2">
+            <div class="col-12">
+              <div class="kpi d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="tiny-muted">تعداد کل پروژه‌ها</div>
+                  <div class="fs-5 fw-bold" id="kpiTotal">0</div>
+                </div>
+                <div class="text-end"><i class="bi bi-kanban-fill fs-3 text-secondary"></i></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="kpi d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="tiny-muted">پروژه‌های تکمیل‌شده</div>
+                  <div class="fs-5 fw-bold text-success" id="kpiCompleted">0</div>
+                </div>
+                <div><i class="bi bi-check-circle-fill fs-3 text-success"></i></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="kpi d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="tiny-muted">میانگین پیشرفت فیزیکی</div>
+                  <div class="fs-5 fw-bold text-warning" id="kpiAvgProg">0%</div>
+                </div>
+                <div><i class="bi bi-speedometer2 fs-3 text-warning"></i></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="kpi d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="tiny-muted">پروژه‌های در ریسک / تأخیر</div>
+                  <div class="fs-5 fw-bold text-danger" id="kpiDelayed">0</div>
+                </div>
+                <div><i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-ui p-3">
+          <h6 class="mb-2"><i class="bi bi-gear-fill text-info"></i> افق گزارش</h6>
+          <div class="tiny-muted mb-2">نمایش لایه‌ها و نمونه تصاویر</div>
+          <img src="https://images.unsplash.com/photo-1542317853-5e4d9b5f8f03?auto=format&fit=crop&w=800&q=60" alt="sat" class="sat-preview mb-2">
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm w-50" id="toggleSatelliteBtn" onclick="toggleSatellite()">تصاویر ماهواره‌ای</button>
+            <button class="btn btn-outline-secondary btn-sm w-50" onclick="focusAll()">نمایش همه</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER + RIGHT: Map & Lists -->
+      <div class="col-lg-6">
+        <div class="card-ui p-3 mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="mb-0"><i class="bi bi-geo-alt-fill text-danger"></i> نقشه پروژه‌ها (GIS)</h5>
+            <div class="d-flex align-items-center gap-2">
+              <select id="zoomPreset" class="form-select form-select-sm" style="width:160px;">
+                <option value="">پیش‌تنظیم منطقه</option>
+                <option value="all">نمای کل کشور</option>
+                <option value="Tehran">تهران</option>
+                <option value="Fars">فارس</option>
+                <option value="Isfahan">اصفهان</option>
+              </select>
+              <button class="btn btn-outline-primary btn-sm" onclick="exportCSV()"><i class="bi bi-download"></i> خروجی CSV</button>
+            </div>
+          </div>
+
+          <div id="map"></div>
+
+          <div class="d-flex gap-3 mt-3 align-items-center">
+            <div class="legend-item"><span class="icon-circle icon-hadi">ه</span> <small>طرح هادی</small></div>
+            <div class="legend-item"><span class="icon-circle icon-reno">ن</span> <small>نوسازی</small></div>
+            <div class="legend-item"><span class="icon-circle icon-national">م</span> <small>نهضت ملی</small></div>
+            <div class="legend-item"><span class="icon-circle icon-disaster">س</span> <small>بازسازی</small></div>
+          </div>
+        </div>
+
+        <div class="card-ui p-3">
+          <h6 class="mb-2"><i class="bi bi-list-ul"></i> فهرست پروژه‌ها (نمونه)</h6>
+          <div class="scroll-list" id="projectsList">
+            <!-- items injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-3">
+        <div class="card-ui p-3 mb-3">
+          <h6 class="mb-3"><i class="bi bi-exclamation-octagon-fill text-danger"></i> رصد پروژه‌های کلیدی</h6>
+          <div id="criticalList" class="list-group list-group-flush">
+            <!-- critical items -->
+          </div>
+        </div>
+
+        <div class="card-ui p-3 mb-3">
+          <h6 class="mb-3"><i class="bi bi-bar-chart-fill text-primary"></i> توزیع پیشرفت فیزیکی</h6>
+          <canvas id="distChart" style="height:180px"></canvas>
+        </div>
+
+        <div class="card-ui p-3">
+          <h6 class="mb-3"><i class="bi bi-geo-fill text-muted"></i> نمونه پروژه‌های کلیدی</h6>
+          <div id="keySamples">
+            <!-- thumbnails -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="text-center tiny-muted mt-4">نسخه نمایشی — داده‌ها فرضی است. برای اتصال واقعی، آرایه <code>projectsData</code> را با API جایگزین کنید.</footer>
+  </main>
+
+  <!-- Modal: Project Details -->
+  <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="detailTitle">مشخصات پروژه</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="detailBody"></div>
+        <div class="modal-footer">
+          <a href="#" id="gisLink" target="_blank" class="btn btn-outline-primary">نمایش در GIS</a>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+  /***** داده‌های نمونه گسترده (20 نمونه) *****/
+  const projectsData = [
+    { id: 201, name: "طرح هادی - روستای سرسبز", province: "Gilan", topic: "Hadi", lat: 37.285, lng: 49.587, progress: 78, status: "Normal", units: 120, start: "1401/02/10", gis: "https://gis.example.com/201" },
+    { id: 202, name: "نوسازی بافت فرسوده - تهران مرکزی", province: "Tehran", topic: "Renovation", lat: 35.6892, lng: 51.3890, progress: 64, status: "Normal", units: 240, start: "1400/11/01", gis: "https://gis.example.com/202" },
+    { id: 203, name: "نهضت ملی - فاز 3 کرج", province: "Alborz", topic: "National", lat: 35.8400, lng: 50.9391, progress: 45, status: "Normal", units: 900, start: "1401/07/12", gis: "https://gis.example.com/203" },
+    { id: 204, name: "بازسازی سیل - جنوب خوزستان", province: "Khuzestan", topic: "Disaster", lat: 31.328, lng: 48.685, progress: 33, status: "Delayed", units: 300, start: "1402/02/01", gis: "https://gis.example.com/204" },
+    { id: 205, name: "طرح هادی - محور غرب", province: "Kurdistan", topic: "Hadi", lat: 35.3, lng: 47.0, progress: 58, status: "Normal", units: 80, start: "1401/06/20", gis: "https://gis.example.com/205" },
+    { id: 206, name: "نوسازی روستاهای مرزی - زاهدان", province: "Sistan", topic: "Renovation", lat: 27.2, lng: 60.6, progress: 41, status: "Delayed", units: 150, start: "1402/09/10", gis: "https://gis.example.com/206" },
+    { id: 207, name: "نهضت ملی - شهر جدید اصفهان", province: "Isfahan", topic: "National", lat: 32.65, lng: 51.67, progress: 26, status: "Delayed", units: 1200, start: "1402/03/05", gis: "https://gis.example.com/207" },
+    { id: 208, name: "طرح هادی - بازسازی معابر فارس", province: "Fars", topic: "Hadi", lat: 29.62, lng: 52.53, progress: 84, status: "Normal", units: 60, start: "1399/10/01", gis: "https://gis.example.com/208" },
+    { id: 209, name: "نوسازی - بجنورد", province: "Khorasan", topic: "Renovation", lat: 37.4720, lng: 57.3200, progress: 78, status: "Normal", units: 250, start: "1400/01/15", gis: "https://gis.example.com/209" },
+    { id: 210, name: "نهضت ملی - پهنه شمالی مازندران", province: "Mazandaran", topic: "National", lat: 36.4, lng: 52.35, progress: 69, status: "Normal", units: 600, start: "1401/12/01", gis: "https://gis.example.com/210" },
+    { id: 211, name: "بازسازی زلزله - کرمانشاه", province: "Kermanshah", topic: "Disaster", lat: 34.3, lng: 47.1, progress: 90, status: "Normal", units: 420, start: "1398/08/01", gis: "https://gis.example.com/211" },
+    { id: 212, name: "طرح هادی - یزد مسیرهای اضطراری", province: "Yazd", topic: "Hadi", lat: 31.9, lng: 54.37, progress: 55, status: "Normal", units: 45, start: "1402/05/11", gis: "https://gis.example.com/212" },
+    { id: 213, name: "نوسازی منطقه جنوبی - هرمزگان", province: "Hormozgan", topic: "Renovation", lat: 27.2, lng: 56.3, progress: 36, status: "Delayed", units: 200, start: "1402/07/20", gis: "https://gis.example.com/213" },
+    { id: 214, name: "نهضت ملی - فاز مادر همدان", province: "Hamedan", topic: "National", lat: 34.8, lng: 48.5, progress: 93, status: "Normal", units: 1100, start: "1400/04/01", gis: "https://gis.example.com/214" },
+    { id: 215, name: "بهسازی دنا - کهگیلویه", province: "Kohgiluyeh", topic: "Renovation", lat: 30.85, lng: 51.57, progress: 72, status: "Normal", units: 80, start: "1401/09/10", gis: "https://gis.example.com/215" },
+    { id: 216, name: "تکمیل واحدهای قشم", province: "Hormozgan", topic: "National", lat: 26.96, lng: 56.24, progress: 30, status: "Delayed", units: 700, start: "1402/11/01", gis: "https://gis.example.com/216" },
+    { id: 217, name: "نوسازی بافت فرسوده - مشهد", province: "Khorasan", topic: "Renovation", lat: 36.315, lng: 59.577, progress: 20, status: "Delayed", units: 95, start: "1403/05/01", gis: "https://gis.example.com/217" },
+    { id: 218, name: "طرح هادی - محور توسعه شمال", province: "Gilan", topic: "Hadi", lat: 37.4, lng: 49.8, progress: 66, status: "Normal", units: 130, start: "1401/03/15", gis: "https://gis.example.com/218" },
+    { id: 219, name: "بازسازی سوانح - مناطق سیل‌زده گلستان", province: "Golestan", topic: "Disaster", lat: 37.3, lng: 55.16, progress: 48, status: "Normal", units: 220, start: "1402/10/10", gis: "https://gis.example.com/219" },
+    { id: 220, name: "پروژه نمادین - نهضت ملی", province: "Tehran", topic: "National", lat: 35.7, lng: 51.4, progress: 12, status: "Delayed", units: 2000, start: "1403/01/05", gis: "https://gis.example.com/220" }
+  ];
+
+  // helper: map topic to label + icon
+  const topicInfo = {
+    "Hadi": { label: "طرح هادی", color: "#0ea5a3", icon: "🏘️" },
+    "Renovation": { label: "نوسازی و بهسازی", color: "#f59e0b", icon: "🔧" },
+    "National": { label: "نهضت ملی مسکن", color: "#0369a1", icon: "🏗️" },
+    "Disaster": { label: "بازسازی سوانح", color: "#ef4444", icon: "🌊" }
+  };
+
+  // last updated
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('lastUpdated').innerText = new Date().toLocaleString('fa-IR');
+  });
+
+  /***************** Leaflet Map *****************/
+  const map = L.map('map', { zoomControl: true }).setView([32.0, 53.0], 5);
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+  const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+  let satelliteOn = false;
+
+  // marker layer group
+  const markers = L.layerGroup().addTo(map);
+
+  function colorForProgress(p, status){
+    if (status === 'Delayed') return '#dc3545';
+    if (p === 100) return '#16a34a';
+    if (p > 75) return '#f59e0b';
+    if (p > 50) return '#0ea5a3';
+    return '#ef4444';
+  }
+
+  function renderMarkers(list){
+    markers.clearLayers();
+    list.forEach(proj => {
+      const color = colorForProgress(proj.progress, proj.status);
+      const markerHtml = `<div style="background:${color};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.25)"></div>`;
+      const icon = L.divIcon({ html: markerHtml, className: '' , iconSize: [24,24], iconAnchor: [12,12]});
+      const m = L.marker([proj.lat, proj.lng], { icon }).addTo(markers);
+      const popupHtml = `
+        <div style="min-width:220px">
+          <div style="font-weight:700">${proj.name}</div>
+          <div style="font-size:13px;color:#374151;margin-top:6px">${topicInfo[proj.topic].icon} ${topicInfo[proj.topic].label} — ${proj.province}</div>
+          <div style="margin-top:8px">
+            <span class="badge badge-prog" style="background:${color};color:#fff">${proj.progress}%</span>
+            <small class="tiny-muted"> — ${proj.units.toLocaleString('fa-IR')} واحد</small>
+          </div>
+          <div style="margin-top:8px"><a href="${proj.gis}" target="_blank">🔍 مشاهده در GIS</a></div>
+        </div>`;
+      m.bindPopup(popupHtml);
+      m.on('click', ()=> showDetails(proj));
+    });
+
+    if (list.length) {
+      const bounds = L.latLngBounds(list.map(p=> [p.lat, p.lng]));
+      map.fitBounds(bounds, { padding: [60,60] });
+    }
+  }
+
+  /***************** Populate filters & lists *****************/
+  function initFilters(){
+    const provinces = Array.from(new Set(projectsData.map(p=>p.province)));
+    const sel = document.getElementById('provinceFilter');
+    provinces.forEach(pr => {
+      const opt = document.createElement('option'); opt.value = pr; opt.textContent = pr; sel.appendChild(opt);
+    });
+
+    // projects list
+    renderProjectsList(projectsData);
+    renderCriticalList(projectsData);
+    renderKeySamples(projectsData);
+    updateKPIs(projectsData);
+    updateDistributionChart(projectsData);
+    renderMarkers(projectsData);
+  }
+
+  function renderProjectsList(list){
+    const container = document.getElementById('projectsList');
+    container.innerHTML = '';
+    list.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'd-flex align-items-center justify-content-between p-2 mb-2 project-list-item rounded';
+      div.innerHTML = `
+        <div class="d-flex gap-2 align-items-center">
+          <div class="type-chip" style="background:${topicInfo[p.topic] ? lighten(topicInfo[p.topic].color,0.92) : '#f3f4f6'}">
+            <span style="font-size:16px">${topicInfo[p.topic].icon}</span>
+            <small style="font-weight:600">${topicInfo[p.topic].label}</small>
+          </div>
+          <div>
+            <div style="font-weight:700">${p.name}</div>
+            <div class="tiny-muted">${p.province} — شروع: ${p.start}</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="mb-1"><span class="badge-prog" style="background:${colorForProgress(p.progress,p.status)};color:#fff">${p.progress}%</span></div>
+          <div class="tiny-muted">${p.units.toLocaleString('fa-IR')} واحد</div>
+        </div>
+      `;
+      div.onclick = ()=> { map.setView([p.lat,p.lng], 12); showDetails(p); };
+      container.appendChild(div);
+    });
+  }
+
+  function renderCriticalList(list){
+    const c = document.getElementById('criticalList');
+    c.innerHTML = '';
+    const crit = list.filter(p => p.progress < 40 || p.status === 'Delayed').sort((a,b)=> a.progress - b.progress).slice(0,8);
+    if (!crit.length) {
+      c.innerHTML = `<div class="text-center small text-success p-2">همه پروژه‌ها در وضعیت قابل قبول هستند ✅</div>`;
+      return;
+    }
+    crit.forEach(p=>{
+      const el = document.createElement('a');
+      el.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-start';
+      el.innerHTML = `
+        <div>
+          <div class="fw-bold">${p.name}</div>
+          <div class="tiny-muted">${p.province} • ${topicInfo[p.topic].label}</div>
+        </div>
+        <div class="text-end">
+          <div><span class="badge bg-danger">${p.progress}%</span></div>
+          <div class="tiny-muted">${p.status === 'Delayed' ? 'تأخیر' : 'در خطر'}</div>
+        </div>
+      `;
+      el.onclick = ()=> { map.setView([p.lat,p.lng],12); showDetails(p); };
+      c.appendChild(el);
+    });
+  }
+
+  function renderKeySamples(list){
+    const container = document.getElementById('keySamples');
+    container.innerHTML = '';
+    const samples = list.filter(p=> p.progress < 50 || p.key).slice(0,4);
+    samples.forEach(p=>{
+      const div = document.createElement('div');
+      div.className = 'd-flex gap-2 mb-2 align-items-center';
+      div.innerHTML = `
+        <div style="width:64px;height:64px;border-radius:8px;background:linear-gradient(180deg, #fff,#f3f9ff);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(2,6,23,0.06)">
+          <div style="font-size:26px">${topicInfo[p.topic].icon}</div>
+        </div>
+        <div>
+          <div class="fw-bold">${p.name}</div>
+          <div class="tiny-muted">${p.province} — ${p.progress}%</div>
+        </div>
+      `;
+      div.onclick = ()=> { map.setView([p.lat,p.lng],12); showDetails(p); };
+      container.appendChild(div);
+    });
+  }
+
+  /***************** Details Modal *****************/
+  const detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
+  function showDetails(p){
+    const title = document.getElementById('detailTitle');
+    const body = document.getElementById('detailBody');
+    const gisLink = document.getElementById('gisLink');
+    title.innerText = `${p.name}`;
+    gisLink.href = p.gis;
+    body.innerHTML = `
+      <div class="row">
+        <div class="col-md-6">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between"><strong>موضوع</strong><span>${topicInfo[p.topic].label}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><strong>استان</strong><span>${p.province}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><strong>واحدها</strong><span>${p.units.toLocaleString('fa-IR')}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><strong>پیشرفت فیزیکی</strong><span>${p.progress}%</span></li>
+            <li class="list-group-item d-flex justify-content-between"><strong>وضعیت</strong><span>${p.status}</span></li>
+            <li class="list-group-item d-flex justify-content-between"><strong>تاریخ شروع</strong><span>${p.start}</span></li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <div style="height:220px;border-radius:8px;overflow:hidden;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-direction:column">
+            <div style="font-size:36px">${topicInfo[p.topic].icon}</div>
+            <div class="fw-bold mt-2">${topicInfo[p.topic].label}</div>
+            <div class="tiny-muted mt-1">${p.province}</div>
+          </div>
+          <div class="mt-2 tiny-muted">لینک GIS و اطلاعات تکمیلی در دسترس است.</div>
+        </div>
+      </div>
+    `;
+    detailModal.show();
+  }
+
+  /***************** KPIs & Distribution Chart *****************/
+  function updateKPIs(list){
+    const total = list.length;
+    const completed = list.filter(p=>p.progress === 100).length;
+    const avg = total ? Math.round(list.reduce((s,p)=>s+p.progress,0)/total) : 0;
+    const delayed = list.filter(p=> p.status === 'Delayed' || p.progress < 30).length;
+    document.getElementById('kpiTotal').innerText = total.toLocaleString('fa-IR');
+    document.getElementById('kpiCompleted').innerText = completed.toLocaleString('fa-IR');
+    document.getElementById('kpiAvgProg').innerText = avg.toLocaleString('fa-IR') + '%';
+    document.getElementById('kpiDelayed').innerText = delayed.toLocaleString('fa-IR');
+    document.getElementById('lastUpdated').innerText = new Date().toLocaleString('fa-IR');
+  }
+
+  let distChart = null;
+  function updateDistributionChart(list){
+    const bins = [0,0,0,0]; // 0-25,26-50,51-75,76-100
+    list.forEach(p=>{
+      if (p.progress <= 25) bins[0]++;
+      else if (p.progress <= 50) bins[1]++;
+      else if (p.progress <= 75) bins[2]++;
+      else bins[3]++;
+    });
+    const ctx = document.getElementById('distChart').getContext('2d');
+    if (distChart) { distChart.data.datasets[0].data = bins; distChart.update(); return; }
+    distChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['۰-۲۵%', '۲۶-۵۰%', '۵۱-۷۵%', '۷۶-۱۰۰%'],
+        datasets: [{ data: bins, backgroundColor: ['#ef4444','#f59e0b','#0ea5a3','#16a34a'] }]
+      },
+      options: { responsive:true, plugins:{ legend:{ position:'bottom' } } }
+    });
+  }
+
+  /***************** Filters logic *****************/
+  function applyFilters(){
+    const prov = document.getElementById('provinceFilter').value;
+    const top = document.getElementById('topicFilter').value;
+    let filtered = projectsData.filter(p => (prov ? p.province === prov : true) && (top ? p.topic === top : true));
+    renderMarkers(filtered);
+    renderProjectsList(filtered);
+    renderCriticalList(filtered);
+    renderKeySamples(filtered);
+    updateKPIs(filtered);
+    updateDistributionChart(filtered);
+  }
+
+  function clearFilters(){
+    document.getElementById('provinceFilter').value = '';
+    document.getElementById('topicFilter').value = '';
+    applyFilters();
+  }
+
+  function resetAll(){
+    clearFilters();
+    map.setView([32.0,53.0],5);
+  }
+
+  function focusAll(){
+    const bounds = L.latLngBounds(projectsData.map(p=>[p.lat,p.lng]));
+    map.fitBounds(bounds, { padding:[50,50] });
+  }
+
+  function toggleSatellite(){
+    satelliteOn = !satelliteOn;
+    if (satelliteOn) { map.addLayer(esriSat); document.getElementById('toggleSatelliteBtn').classList.add('active'); }
+    else { map.removeLayer(esriSat); document.getElementById('toggleSatelliteBtn').classList.remove('active'); }
+  }
+
+  /***************** CSV export (simple) *****************/
+  function exportCSV(){
+    const rows = [
+      ['id','name','province','topic','progress','units','start','gis']
+    ];
+    projectsData.forEach(p => rows.push([p.id, p.name, p.province, p.topic, p.progress, p.units, p.start, p.gis]));
+    const csv = rows.map(r=> r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'projects_export.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /***************** Util: lighten color *****************/
+  function lighten(hex, percent){
+    // hex like #rrggbb
+    const num = parseInt(hex.replace('#',''),16);
+    let r = (num >> 16) + Math.round((255 - (num >> 16)) * percent);
+    let g = ((num >> 8) & 0x00FF) + Math.round((255 - ((num >> 8) & 0x00FF)) * percent);
+    let b = (num & 0x0000FF) + Math.round((255 - (num & 0x0000FF)) * percent);
+    r = (r<255)?r:255; g=(g<255)?g:255; b=(b<255)?b:255;
+    return '#' + ( (1<<24) + (r<<16) + (g<<8) + b ).toString(16).slice(1);
+  }
+
+  /***************** Zoom preset handler *****************/
+  document.getElementById('zoomPreset').addEventListener('change', function(){
+    const v = this.value;
+    if (!v || v === 'all') { focusAll(); return; }
+    const list = projectsData.filter(p=> p.province === v);
+    if (list.length) {
+      const bounds = L.latLngBounds(list.map(p=> [p.lat,p.lng]));
+      map.fitBounds(bounds, { padding:[50,50] });
+    } else alert('پروژه‌ای برای این استان یافت نشد.');
+  });
+
+  /***************** Initialize on load *****************/
+  document.addEventListener('DOMContentLoaded', () => {
+    initFilters();
+  });
+
+  </script>
+</body>
+</html>
