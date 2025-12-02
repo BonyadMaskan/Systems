@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>پنل مدیریتی هوش مصنوعی — بنیاد مسکن</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Configuration for Tailwind to use custom colors and RTL-friendly fonts
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ai-primary': '#0ea5e9', // Sky-500 for a bright, modern blue
+            'ai-secondary': '#06b6d4', // Cyan-500
+            'ai-bg': '#f4f7fa', // Very light background
+            'ai-card': '#ffffff', // White cards
+            'ai-text': '#1f2937', // Dark gray text
+            'ai-faded': '#6b7280', // Medium gray for faded text
+          }
+        },
+      }
+    }
+  </script>
+  <style>
+    /* Custom styles for the light theme */
+    body {
+      background-color: var(--ai-bg, #f4f7fa);
+      color: var(--ai-text, #1f2937);
+      font-family: Tahoma, 'IRANSans', sans-serif; /* Example font change for better RTL rendering */
+    }
+    .card {
+      background-color: var(--ai-card, #ffffff);
+      border-radius: 0.75rem; /* rounded-xl */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); /* subtle shadow */
+    }
+    .faded {
+      color: var(--ai-faded, #6b7280);
+    }
+    .stat-value {
+      font-feature-settings: 'tnum';
+      font-variant-numeric: tabular-nums;
+    }
+    /* Mobile grid adjustment */
+    @media (max-width: 640px) {
+      .desktop-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+    }
+    /* Modal backdrop */
+    #modal {
+      display: none; /* Controlled by JS for initial state */
+    }
+    #modal.active {
+        display: flex;
+    }
+    /* Chart custom styles (for better light mode rendering) */
+    .chart-card canvas {
+        max-height: 240px;
+    }
+  </style>
+</head>
+<body class="font-sans">
+  <div class="max-w-[1400px] mx-auto p-4">
+
+    <header class="flex flex-wrap items-center justify-between mb-6 pb-2 border-b border-gray-200">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-full bg-ai-primary flex items-center justify-center shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1v-3.25M7 11h10M4 11h3m10 0h3M7 4h10a3 3 0 013 3v7a3 3 0 01-3 3H7a3 3 0 01-3-3V7a3 3 0 013-3z"/></svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-ai-text">پنل مدیریتی هوش مصنوعی <span class="text-lg faded">رئیس بنیاد</span></h1>
+          <div class="text-sm faded">تحلیل‌ها، هشدارها و پیشنهادهای آنی برای بنیاد مسکن</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 mt-3 md:mt-0">
+        <div class="text-right">
+          <div class="text-sm font-medium">زمان فعلی: <span id="lastUpdated" class="stat-value font-mono">--</span></div>
+          <div class="text-xs faded">وضعیت: <span class="text-green-600 font-semibold">عملیاتی</span></div>
+        </div>
+        <button id="refreshBtn" class="px-5 py-2 rounded-full bg-ai-primary text-white font-medium shadow-md shadow-ai-primary/40 transition hover:bg-ai-secondary">
+          <span class="flex items-center gap-1">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+             بروزرسانی
+          </span>
+        </button>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 desktop-grid mb-6">
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">پروژه‌های فعال</div>
+          <span class="text-ai-primary"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></span>
+        </div>
+        <div id="stat-projects" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-projects-delta" class="text-sm font-semibold text-green-600">--</div>
+          <div class="text-xs faded">در ۷ روز گذشته</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniProgress" /></div>
+      </div>
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">موارد مشکوک AI</div>
+          <span class="text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.39 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
+        </div>
+        <div id="stat-anomalies" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-anomalies-delta" class="text-sm font-semibold text-red-500">--</div>
+          <div class="text-xs faded">تغییر نسبت به دیروز</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniAnom"/></div>
+      </div>
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">پیشنهاد تخصیص</div>
+          <span class="text-green-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v3m-3.974 0H4a2 2 0 01-2-2V8a2 2 0 012-2h3.974m0 0V4a2 2 0 012-2h4.052a2 2 0 012 2v2m0 0h3.974a2 2 0 012 2v3a2 2 0 01-2 2h-1.974M12 18h.01M17 14h-5m-2 4h7"/></svg></span>
+        </div>
+        <div id="stat-resources" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-resources-delta" class="text-sm font-semibold text-yellow-600">--</div>
+          <div class="text-xs faded">پیشنهادهای امروز</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniAlloc"/></div>
+      </div>
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">میانگین امتیاز عملکرد (KPI)</div>
+          <span class="text-purple-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+        </div>
+        <div id="stat-kpi" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-kpi-delta" class="text-sm font-semibold text-blue-600">--</div>
+          <div class="text-xs faded">تغییر نسبت به ماه قبل</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniKpi"/></div>
+      </div>
+
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+
+      <div class="col-span-1">
+        <div class="card p-5 h-full">
+          <h2 class="text-lg font-bold mb-4 border-b pb-2">قابلیت‌های کلیدی هوش مصنوعی 🧠</h2>
+          <div class="grid grid-cols-1 gap-3">
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="anomaly">
+              <div>
+                <div class="text-base font-semibold text-ai-text">موتور تشخیص تخلف</div>
+                <div class="text-xs faded">شناسایی موارد مشکوک مالی و گزارش‌های غیرواقعی</div>
+              </div>
+              <span class="text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="forecast">
+              <div>
+                <div class="text-base font-semibold text-ai-text">پیش‌بینی تأخیر پروژه‌ها</div>
+                <div class="text-xs faded">پیش‌بینی پروژه‌های در خطر تا ۳۰ روز آینده</div>
+              </div>
+              <span class="text-blue-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="allocator">
+              <div>
+                <div class="text-base font-semibold text-ai-text">پیشنهاد تخصیص منابع</div>
+                <div class="text-xs faded">پیشنهاد هوشمند سرریز یا انتقال اعتبار بین پروژه‌ها</div>
+              </div>
+              <span class="text-green-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="risk">
+              <div>
+                <div class="text-base font-semibold text-ai-text">پیش‌بینی ریسک بحران</div>
+                <div class="text-xs faded">هشدار و نقشه مبتنی بر داده‌های جغرافیایی و هواشناسی</div>
+              </div>
+              <span class="text-yellow-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="ranking">
+              <div>
+                <div class="text-base font-semibold text-ai-text">رتبه‌بندی عملکرد</div>
+                <div class="text-xs faded">مقایسه KPIها، بودجه و کیفیت گزارش‌دهی استان‌ها</div>
+              </div>
+              <span class="text-purple-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.333 0 2.667.5 4 1.5l-4 4-4-4c1.333-1 2.667-1.5 4-1.5z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="doc">
+              <div>
+                <div class="text-base font-semibold text-ai-text">تحلیل مکاتبات</div>
+                <div class="text-xs faded">خلاصه‌سازی، اولویت‌بندی و استخراج تصمیم از اسناد</div>
+              </div>
+              <span class="text-orange-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-1 lg:col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div class="card p-5">
+            <h3 class="text-lg font-bold mb-1">پیشرفت تجمعی پروژه‌ها</h3>
+            <div class="text-sm faded mb-3">نمای کلی پیشرفت در استان‌ها</div>
+            <div class="flex items-end justify-between">
+              <div>
+                <div class="text-4xl font-extrabold text-ai-primary" id="projPerc">-- %</div>
+              </div>
+              <div class="text-xs faded">شاخص کل میانگین</div>
+            </div>
+            <div class="mt-4"><canvas id="projChart"></canvas></div>
+          </div>
+
+          <div class="card p-5">
+            <h3 class="text-lg font-bold mb-1">نمودار موارد مشکوک</h3>
+            <div class="text-sm faded mb-3">توزیع ناهنجاری‌های شناسایی شده توسط AI</div>
+            <div class="flex items-end justify-between">
+              <div>
+                <div class="text-base font-semibold text-red-500" id="anomTopProv">استان با بالاترین هشدار: --</div>
+              </div>
+              <div class="text-xs faded">هشدار روزانه</div>
+            </div>
+            <div class="mt-4"><canvas id="anomChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <h3 class="text-lg font-bold mb-3 border-b pb-2">رویدادهای اخیر و تصمیم‌های پیشنهادی</h3>
+
+          <div class="mb-4">
+            <div class="text-sm font-semibold mb-2">💰 پیشنهادهای تخصیص اعتبار (هوشمند)</div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-right text-sm">
+                <thead class="text-xs text-ai-faded border-b">
+                  <tr>
+                    <th class="py-2 px-1">استان</th>
+                    <th class="py-2 px-1">پروژه هدف</th>
+                    <th class="py-2 px-1">وضعیت</th>
+                    <th class="py-2 px-1">پیشنهاد (میلیون تومان)</th>
+                  </tr>
+                </thead>
+                <tbody id="allocTable" class="text-ai-text divide-y divide-gray-100">
+                  </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="text-sm font-semibold mb-2 mt-4">📢 فید هشدارها و تحلیل‌های لحظه‌ای</div>
+            <ul id="activityFeed" class="space-y-3 text-sm text-ai-text">
+              </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <footer class="flex items-center justify-between text-sm faded mt-6 pt-4 border-t border-gray-200">
+      <div>نسخهٔ نمایشی — داده‌ها فرضی و نزدیک به واقعیت برای بنیاد مسکن</div>
+      <div class="flex gap-3">
+        <button id="exportPdf" class="px-4 py-1 rounded bg-gray-100 text-ai-text border hover:bg-gray-200">خروجی PDF</button>
+        <button id="openReport" class="px-4 py-1 rounded bg-ai-primary text-white border border-ai-primary hover:bg-ai-secondary">گزارش جامع AI</button>
+      </div>
+    </footer>
+
+  </div>
+
+  <div id="modal" class="fixed inset-0 z-50 items-center justify-center p-4 transition-opacity duration-300">
+    <div class="absolute inset-0 bg-black/70" data-close></div>
+    <div class="bg-ai-card border border-gray-200 rounded-xl shadow-2xl w-full max-w-4xl p-6 relative transform transition-all sm:my-8 sm:align-middle sm:w-full sm:p-6 card">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h4 id="modalTitle" class="text-2xl font-bold text-ai-primary">عنوان</h4>
+          <div id="modalSubtitle" class="text-base faded mt-1">زیرعنوان</div>
+        </div>
+        <div class="text-right">
+          <button data-close class="px-4 py-2 rounded-full bg-gray-100 border border-gray-300 text-ai-text hover:bg-gray-200">بستن</button>
+        </div>
+      </div>
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-3 bg-ai-bg rounded-lg">
+          <canvas id="modalChart" style="max-height:300px"></canvas>
+        </div>
+        <div class="p-3">
+          <div class="text-sm font-semibold border-b pb-1">خلاصه تحلیلی هوش مصنوعی</div>
+          <div id="modalSummary" class="mt-3 text-ai-text leading-7"></div>
+          <div class="mt-5">
+            <h5 class="text-sm font-semibold border-b pb-1">اقدامات پیشنهادی کلیدی</h5>
+            <ul id="modalActions" class="list-disc list-inside text-ai-text mt-3 space-y-1 text-sm mr-4"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Mock realistic dataset ----------
+    const provinces = ['تهران', 'اصفهان', 'خراسان رضوی', 'خوزستان', 'گیلان', 'فارس', 'کرمان', 'آذربایجان شرقی'];
+
+    function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+    let state = {
+      projects: 1280,
+      anomalies: 27,
+      resourceProposals: 9,
+      avgKpi: random(70, 90),
+      projProgress: Array.from({ length: provinces.length }, () => random(45, 85)),
+      anomByProv: provinces.map(p => ({ prov: p, anoms: random(0, 10) })),
+      allocations: [
+        { prov: 'تهران', project: 'بازسازی بلوک A', value: 200, status: 'در حال بررسی' },
+        { prov: 'خوزستان', project: 'تعمیر سقف روستاها', value: 120, status: 'تایید اضطراری' },
+        { prov: 'کرمان', project: 'بازسازی راه روستایی', value: 80, status: 'منتظر تایید' }
+      ],
+      feed: []
+    }
+
+    // Chart.js global config for light theme and RTL
+    Chart.defaults.font.family = 'Tahoma, sans-serif';
+    Chart.defaults.color = '#374151'; // Text color
+    Chart.defaults.borderColor = '#e5e7eb'; // Border/Grid color
+    Chart.defaults.plugins.tooltip.rtl = true;
+    Chart.defaults.plugins.legend.rtl = true;
+    Chart.defaults.plugins.tooltip.titleAlign = 'right';
+    Chart.defaults.plugins.tooltip.bodyAlign = 'right';
+
+    // ---------- Utility to update header timestamp ----------
+    function updateTimestamp() { document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('fa-IR'); }
+
+    // ---------- Small sparkline charts ----------
+    let miniProgressChart, miniAnomChart, miniAllocChart, miniKpiChart, projChart, anomChart, modalChart;
+
+    function makeSpark(canvasId, data, color) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      // Create a gradient for the fill
+      const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+      gradient.addColorStop(0, color + '50'); // 50% opacity
+      gradient.addColorStop(1, '#ffffff00'); // Full transparency
+
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map((_, i) => i + 1),
+          datasets: [{
+            data,
+            fill: 'start',
+            borderColor: color,
+            backgroundColor: gradient,
+            pointRadius: 0,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          elements: { line: { tension: 0.45 } },
+          scales: { x: { display: false }, y: { display: false } }
+        }
+      })
+    }
+
+    // main charts
+    function createCharts() {
+      // Mini Charts
+      miniProgressChart = makeSpark('miniProgress', state.projProgress, '#0ea5e9');
+      miniAnomChart = makeSpark('miniAnom', state.anomByProv.map(d => d.anoms), '#ef4444');
+      miniAllocChart = makeSpark('miniAlloc', state.allocations.map(a => a.value), '#10b981');
+      miniKpiChart = makeSpark('miniKpi', Array.from({ length: 7 }, () => random(60, 95)), '#8b5cf6');
+
+      // Main Chart 1: Project Progress (Bar Chart)
+      const ctx1 = document.getElementById('projChart').getContext('2d');
+      projChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: provinces,
+          datasets: [{
+            label: 'پیشرفت میانگین %',
+            data: state.projProgress,
+            backgroundColor: '#0ea5e9',
+            borderColor: '#0ea5e9',
+            borderWidth: 1,
+            borderRadius: 5,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { ticks: { mirror: true, padding: 10 } }
+          }
+        }
+      });
+
+      // Main Chart 2: Anomalies by Province (Doughnut Chart)
+      const ctx2 = document.getElementById('anomChart').getContext('2d');
+      anomChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: provinces,
+          datasets: [{
+            data: state.anomByProv.map(d => d.anoms),
+            backgroundColor: ['#f43f5e', '#fb923c', '#0ea5e9', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b', '#06b6d4'],
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+              }
+            }
+          }
+        }
+      });
+
+      // Modal Chart (Placeholder - will be updated when modal opens)
+      const ctx3 = document.getElementById('modalChart').getContext('2d');
+      modalChart = new Chart(ctx3, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'شاخص', data: [], borderColor: '#0ea5e9', backgroundColor: '#0ea5e930', fill: true }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true }
+            }
+        }
+      });
+    }
+
+    // ---------- Render functions ----------
+    function renderStats() {
+      document.getElementById('stat-projects').innerText = state.projects.toLocaleString('fa-IR');
+      document.getElementById('stat-anomalies').innerText = state.anomalies.toLocaleString('fa-IR');
+      document.getElementById('stat-resources').innerText = state.resourceProposals.toLocaleString('fa-IR');
+      document.getElementById('stat-kpi').innerText = state.avgKpi.toFixed(1).toLocaleString('fa-IR');
+
+      // Delta calculations (realistic-like)
+      const projDelta = random(-5, 5);
+      const anomDelta = random(-30, 30);
+      const resDelta = random(-10, 10);
+      const kpiDelta = (Math.random() * 2 - 1).toFixed(1);
+
+      document.getElementById('stat-projects-delta').innerText = (projDelta > 0 ? '+' : '') + projDelta + '%';
+      document.getElementById('stat-projects-delta').className = projDelta > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-500';
+
+      document.getElementById('stat-anomalies-delta').innerText = (anomDelta > 0 ? '+' : '') + anomDelta + '%';
+      document.getElementById('stat-anomalies-delta').className = anomDelta > 0 ? 'text-sm font-semibold text-red-500' : 'text-sm font-semibold text-green-600';
+
+      document.getElementById('stat-resources-delta').innerText = (resDelta > 0 ? '+' : '') + resDelta + '%';
+      document.getElementById('stat-resources-delta').className = resDelta > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-500';
+
+      document.getElementById('stat-kpi-delta').innerText = (kpiDelta > 0 ? '+' : '') + kpiDelta + '%';
+      document.getElementById('stat-kpi-delta').className = kpiDelta > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-500';
+
+
+      // Total progress and top anomaly province
+      const totalProgress = state.projProgress.reduce((a, b) => a + b, 0);
+      document.getElementById('projPerc').innerText = Math.round(totalProgress / state.projProgress.length) + ' %';
+      const top = state.anomByProv.slice().sort((a, b) => b.anoms - a.anoms)[0];
+      document.getElementById('anomTopProv').innerText = top ? `${top.prov} (${top.anoms} مورد)` : 'بدون هشدار فوری';
+
+      // Allocations table
+      const tbody = document.getElementById('allocTable'); tbody.innerHTML = '';
+      state.allocations.forEach(a => {
+        const tr = document.createElement('tr');
+        const statusClass = a.status.includes('اضطراری') ? 'text-red-500 font-medium' : a.status.includes('تایید') ? 'text-green-500' : 'text-yellow-600';
+        tr.innerHTML = `<td class='py-2 px-1'>${a.prov}</td><td class='py-2 px-1'>${a.project}</td><td class='py-2 px-1 ${statusClass}'>${a.status}</td><td class='py-2 px-1 font-bold stat-value'>${a.value.toLocaleString('fa-IR')}</td>`;
+        tbody.appendChild(tr);
+      })
+
+      // Feed
+      const feed = document.getElementById('activityFeed'); feed.innerHTML = '';
+      state.feed.slice().reverse().forEach(e => {
+        const colorClass = e.meta.includes('تخلف') ? 'text-red-500' : e.meta.includes('پیشنهاد') ? 'text-green-500' : 'text-blue-500';
+        const li = document.createElement('li');
+        li.className = 'border-b border-gray-100 last:border-b-0 pb-3 pt-1';
+        li.innerHTML = `<div class='flex justify-between items-start'>
+            <div><div class='text-sm font-medium'>${e.text}</div>
+            <div class='text-xs faded mt-1'>از <span class="${colorClass} font-semibold">${e.meta}</span></div></div>
+            <div class='text-xs font-medium faded'>${e.time}</div>
+          </div>`;
+        feed.appendChild(li);
+      })
+    }
+
+    // ---------- Simulate live updates (dynamic) ----------
+    function stepUpdate() {
+      // Small random changes
+      state.projects += random(-3, 5);
+      state.anomalies = Math.max(0, state.anomalies + random(-2, 3));
+      state.resourceProposals = Math.max(0, state.resourceProposals + random(-1, 2));
+      state.avgKpi = Math.min(95, Math.max(65, state.avgKpi + (Math.random() * 1 - 0.5))); // smooth change
+
+      // Shift progress
+      state.projProgress.forEach((p, i) => state.projProgress[i] = Math.max(20, Math.min(99, p + random(-1, 2))));
+      // Change anomalies by province randomly
+      state.anomByProv.forEach(a => { a.anoms = Math.max(0, a.anoms + random(-1, 1)) });
+
+      // Add to feed sometimes
+      if (Math.random() < 0.8) {
+        const type = random(1, 4);
+        let text, meta;
+        if (type === 1) {
+          text = `تشخیص الگوی غیرمعمول در مصرف منابع پروژهٔ ${provinces[random(0, provinces.length - 1)]}`;
+          meta = 'موتور تشخیص تخلف';
+        } else if (type === 2) {
+          text = `پیش‌بینی ریسک تأخیر ۲۵ روزه برای پروژهٔ ${provinces[random(0, provinces.length - 1)]}`;
+          meta = 'موتور پیش‌بینی';
+        } else if (type === 3) {
+          text = `پیشنهاد تخصیص ۲۰۰ میلیون تومان اعتبار به استان ${provinces[random(0, provinces.length - 1)]}`;
+          meta = 'موتور تخصیص هوشمند';
+        } else {
+          text = `خلاصه‌سازی نامهٔ ${random(1000, 9999)} با دستور اقدام: پیگیری پیمانکار`;
+          meta = 'تحلیل مکاتبات';
+        }
+        state.feed.push({ time: new Date().toLocaleTimeString('fa-IR'), text, meta });
+        if (state.feed.length > 20) state.feed.shift();
+      }
+
+      // update charts
+      miniProgressChart.data.datasets[0].data = state.projProgress; miniProgressChart.update();
+      miniAnomChart.data.datasets[0].data = state.anomByProv.map(d => d.anoms); miniAnomChart.update();
+      miniAllocChart.data.datasets[0].data = state.allocations.map(a => a.value); miniAllocChart.update();
+
+      projChart.data.datasets[0].data = state.projProgress; projChart.update();
+      anomChart.data.datasets[0].data = state.anomByProv.map(d => d.anoms); anomChart.update();
+
+      // render text
+      renderStats(); updateTimestamp();
+    }
+
+    // ---------- Feature modals content generator ----------
+    function openFeature(key) {
+      const modal = document.getElementById('modal');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      const title = document.getElementById('modalTitle');
+      const subtitle = document.getElementById('modalSubtitle');
+      const summary = document.getElementById('modalSummary');
+      const actions = document.getElementById('modalActions');
+      const chart = modalChart;
+
+      actions.innerHTML = '';
+      let chartData = [];
+      let chartLabels = [];
+      let chartType = 'line';
+      let chartColor = '#0ea5e9';
+
+      const dataConfig = {
+        anomaly: {
+          title: 'موتور تشخیص تخلف و ناهنجاری',
+          subtitle: 'شناسایی موارد مشکوک مالی و گزارش‌های غیرواقعی',
+          summary: '<p>سیستم با تلفیق داده‌های مالی، گزارش‌های پیشرفت، و تصاویر پروژه، غیرطبیعی بودن الگوهای گزارش‌دهی و مصرف را شناسایی می‌کند. **استان با بیشترین ناهنجاری، خراسان رضوی است.**</p>',
+          actions: ['علامت‌گذاری پروژه‌های پرنوسان', 'ارسال پرونده برای بازبینی حضوری', 'بلوک کردن پرداخت تا روشن‌شدن وضعیت'],
+          data: state.anomByProv.map(d => d.anoms), labels: provinces, type: 'bar', color: '#ef4444'
+        },
+        forecast: {
+          title: 'پیش‌بینی تأخیر پروژه‌ها',
+          subtitle: 'پیش‌بینی ۳۰روزه مبتنی بر تاریخچه و شرایط محیطی',
+          summary: '<p>الگوریتم‌های سری‌زمان و مدل‌های درختی با داده‌های پیمانکاران، هوای منطقه و روند پیشرفت، احتمال تاخیر را محاسبه می‌کنند. **حدود ۸٪ از پروژه‌ها در خطر تأخیر بیش از ۱۵ روز هستند.**</p>',
+          actions: ['اولویت‌بندی بازدیدهای میدانی', 'تغییر پیمانکار یا اعزام نیروی پشتیبان', 'تخصیص اعتبار اضطراری'],
+          data: Array.from({ length: 10 }, () => random(40, 95)), labels: Array.from({ length: 10 }, (_, i) => `روز ${i + 1}`), color: '#0ea5e9'
+        },
+        report: {
+          title: 'تولید گزارش‌های مدیریتی',
+          subtitle: 'گزارش‌های آماده چاپ و جلسه‌ای',
+          summary: '<p>قابلیت تولید متن فارسی رسمی، نمودارها و خلاصه مدیریتی با امکان خروجی Word/PDF و قالب‌های استاندارد مدیریتی (مانند EFQM/BSC).</p>',
+          actions: ['صدور گزارش ماهانه خودکار', 'تهیه صفحه برای جلسه هیئت‌مدیره', 'خلاصه ۳ نکته کلیدی هر معاونت'],
+          data: [random(70, 90), random(60, 85), random(50, 75), random(80, 95)], labels: ['KPI مالی', 'KPI پیشرفت', 'KPI رضایت‌مندی', 'KPI گزارش‌دهی'], type: 'radar', color: '#8b5cf6'
+        },
+        assistant: {
+          title: 'دستیار هوشمند مدیریتی (Chat-AI)',
+          subtitle: 'پاسخ سریع، خلاصه‌سازی و آماده‌سازی دستور جلسه',
+          summary: '<p>چت‌باتی با درک موضوعی و توان خلاصه‌سازی که می‌تواند ایمیل/نامه پیشنهادی تولید کند و پاسخ‌های فوری به پرسش‌های مدیریتی (مثلاً آمار فلان استان) ارائه دهد.</p>',
+          actions: ['پاسخ به سوالات لحظه‌ای', 'خلاصه‌سازی نامه‌های طولانی', 'تولید دستور جلسه پیشنهادی'],
+          data: [random(10, 80), random(5, 60), random(0, 30)], labels: ['پاسخ‌های فوری', 'خلاصه‌ها', 'ایمیل‌ها'], type: 'pie', color: '#f59e0b'
+        },
+        ranking: {
+          title: 'رتبه‌بندی عملکرد استان‌ها',
+          subtitle: 'رتبه‌بندی مبتنی بر KPI، بودجه و کیفیت گزارش‌دهی',
+          summary: '<p>مدل نمره‌دهی وزن‌دار که استان‌ها را بر اساس شاخص‌های مدیریتی رتبه‌بندی می‌کند. **استان تهران، اصفهان و خراسان رضوی در صدر قرار دارند.**</p>',
+          actions: ['اعلام رتبه و ارسال گزارش تفصیلی', 'پاداش/تنبیه سطحی پیشنهاد شده', 'تحلیل نقاط ضعف هر استان'],
+          data: state.projProgress.map(p => p * random(1, 1.2)).map(v => Math.round(v)), labels: provinces, type: 'bar', color: '#10b981'
+        },
+        risk: {
+          title: 'پیش‌بینی ریسک بحران و آسیب‌پذیری',
+          subtitle: 'هشدارهای نقشه‌محور و اولویت‌بندی بازسازی',
+          summary: '<p>ترکیب داده‌های هواشناسی و تاریخی با شاخص آسیب‌پذیری روستایی برای تولید هشدار منطقه‌ای. این موتور **استان گیلان و خوزستان** را در وضعیت ریسک بالا قرار داده است.</p>',
+          actions: ['ارسال هشدار به استان/واحد مرتبط', 'آماده‌سازی اقلام اضطراری', 'اولویت‌بندی پروژه‌های مقاوم‌سازی'],
+          data: [random(40, 60), random(20, 40), random(10, 20)], labels: ['خطر پایین', 'خطر متوسط', 'خطر بالا'], type: 'polarArea', color: '#f97316'
+        },
+        doc: {
+          title: 'تحلیل هوشمند مکاتبات',
+          subtitle: 'خلاصه، اولویت، استخراج دستورها از اسناد',
+          summary: '<p>استخراج عمل‌های موردنیاز از متن نامه و اتصال به مسیرهای وظیفه‌ای (workflow) به صورت خودکار. این موتور **۲۳ اقدام ضروری** را از نامه‌های امروز استخراج کرده است.</p>',
+          actions: ['خلاصه‌سازی خودکار و طبقه‌بندی', 'استخراج وظایف و مسئول', 'اولویت‌بندی نامه‌ها بر اساس فوریت و اهمیت'],
+          data: [random(30, 90), random(10, 60), random(1, 20)], labels: ['نامه‌ها', 'گزارش‌ها', 'مصوبات'], type: 'doughnut', color: '#f59e0b'
+        },
+        materials: {
+          title: 'پایش مصالح و هزینه',
+          subtitle: 'کشف مصرف غیرعادی و الگوهای هدررفت',
+          summary: '<p>تحلیل مقادیر مصرفی بر واحد سطح و شناسایی انحراف از الگوی مرجع مصالح. **پروژه سیمان در ۳ استان بیشتر از استاندارد مصرف شده است.**</p>',
+          actions: ['بررسی انبار و ورود/خروج', 'درخواست پیگیری پیمانکار', 'مقایسه با الگوی مرجع'],
+          data: [random(100, 400), random(50, 300), random(10, 200)], labels: ['سیمان', 'فولاد', 'ماسه'], type: 'bar', color: '#06b6d4'
+        },
+        allocator: {
+          title: 'پیشنهاد هوشمند تخصیص منابع',
+          subtitle: 'الگوریتم بهینه‌سازی تخصیص بودجه',
+          summary: '<p>محاسبه پیشنهادهای تخصیص اعتبار بر اساس مصادیق نیاز، ریسک و ظرفیت اجرا. **۴۰٪ پیشنهادها در حال حاضر روی پروژه‌های با ریسک تأخیر بالا متمرکز هستند.**</p>',
+          actions: ['پیشنهاد انتقال اعتبار', 'پیشنهاد توقف پروژه', 'پیشنهاد تزریق اعتبار اضطراری'],
+          data: [random(50, 80), random(20, 50), random(10, 30)], labels: ['درصد تزریق', 'درصد انتقال', 'درصد توقف'], type: 'pie', color: '#10b981'
+        }
+      };
+
+      const config = dataConfig[key];
+
+      title.innerText = config.title;
+      subtitle.innerText = config.subtitle;
+      summary.innerHTML = config.summary;
+
+      config.actions.forEach(a => {
+        const li = document.createElement('li');
+        li.innerText = a;
+        actions.appendChild(li)
+      });
+
+      // Update Chart in Modal
+      chart.destroy(); // Destroy previous chart instance
+
+      const ctx3 = document.getElementById('modalChart').getContext('2d');
+      chart.type = config.type;
+      chart.data = {
+        labels: config.labels,
+        datasets: [{
+          label: config.title.split(' ')[0],
+          data: config.data,
+          backgroundColor: Chart.helpers.color(config.color).alpha(0.6).rgbString(),
+          borderColor: config.color,
+          borderWidth: (config.type === 'line' || config.type === 'radar') ? 2 : 0,
+          fill: config.type === 'line' || config.type === 'radar' ? 'start' : false,
+        }]
+      };
+      chart.options.scales.x.display = config.type !== 'pie' && config.type !== 'doughnut' && config.type !== 'polarArea';
+      chart.options.scales.y.display = config.type !== 'pie' && config.type !== 'doughnut' && config.type !== 'polarArea';
+      modalChart = new Chart(ctx3, chart); // Create new chart instance
+    }
+
+    // ---------- DOM events ----------
+    document.querySelectorAll('.featureBtn').forEach(b => {
+      b.addEventListener('click', () => openFeature(b.dataset.feature))
+    });
+    document.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', () => {
+      document.getElementById('modal').classList.remove('active');
+      document.body.style.overflow = 'auto'
+    }));
+    document.getElementById('refreshBtn').addEventListener('click', () => { stepUpdate(); });
+
+    // Initial load and updates
+    createCharts();
+    renderStats();
+    updateTimestamp();
+    // Run a few steps to populate feed initially
+    for (let i = 0; i < 5; i++) stepUpdate();
+
+    // Live updates every 5s (simulating stream)
+    setInterval(stepUpdate, 5000);
+
+    // export (dummy)
+    document.getElementById('exportPdf').addEventListener('click', () => { alert('خروجی PDF آماده شد (شبیه‌سازی)'); });
+    document.getElementById('openReport').addEventListener('click', () => { alert('باز کردن گزارش کامل هوش مصنوعی (شبیه‌سازی)'); });
+  </script>
+</body>
+</html>

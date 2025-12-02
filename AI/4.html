@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>پنل مدیریتی هوش مصنوعی — بنیاد مسکن (ادغام‌شده)</title>
+
+  <!-- فایل 1: Tailwind و Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- فایل 2: فونت -->
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- استایل‌های مشترک: شامل CSSهای هر دو فایل (بدون دستکاری محتوا) -->
+  <style>
+    /* --------------------------- بخش‌های اصلی فایل 1 --------------------------- */
+    /* Custom styles for the light theme (file 1) */
+    body {
+      background-color: var(--ai-bg, #f4f7fa);
+      color: var(--ai-text, #1f2937);
+      font-family: Tahoma, 'IRANSans', sans-serif;
+    }
+    .card {
+      background-color: var(--ai-card, #ffffff);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    .faded {
+      color: var(--ai-faded, #6b7280);
+    }
+    .stat-value {
+      font-feature-settings: 'tnum';
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 640px) {
+      .desktop-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+    }
+    #modal { display: none; }
+    #modal.active { display:flex; }
+    .chart-card canvas { max-height: 240px; }
+
+    /* --------------------------- بخش‌های اصلی فایل 2 --------------------------- */
+    /* Use Vazirmatn for the file 2 area by default */
+    .vazir-root { font-family: 'Vazirmatn', Tahoma, sans-serif; }
+
+    /* CSS پایه فایل 2 */
+    body.vazir-root { background-color: #f0f2f5; color: #333; direction: rtl; overflow-x: hidden; }
+    .header-2 {
+        background-color: #ffffff;
+        color: #1f3a93;
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    .header-2 h1 { font-size: 1.8em; font-weight: 900; margin: 0; }
+    .ai-symbol { font-size: 28px; color: #00bcd4; animation: bounce 1.2s infinite alternate; margin: 0 15px; }
+    @keyframes bounce { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.1) translateY(-5px); } 100% { transform: scale(1); } }
+    .ai-summary { background-color: #e3f2fd; color: #1565c0; padding: 10px 40px; text-align: center; font-size: 1.1em; font-weight: 700; border-bottom: 2px solid #90caf9; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; padding: 20px; }
+    .card-2 { background-color: #ffffff; border-radius: 12px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); cursor: pointer; transition: transform .3s, box-shadow .3s; border:1px solid #e0e0e0; }
+    .card-2:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+    .card-2 h3 { font-size: 1.1em; margin-top: 0; padding-bottom:5px; border-bottom:2px solid; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .kpi-container { display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; }
+    .kpi-value { font-size:1.5em; font-weight:900; }
+    .kpi-label { font-size:0.75em; color:#666; }
+    .gauge-container { width:80px; height:40px; overflow:hidden; position:relative; margin:10px auto; border-radius:40px 40px 0 0; background-color:#ccc; }
+    .gauge-fill { height:80px; width:160px; border-radius:80px 80px 0 0; background: conic-gradient(#4caf50 0% 30%, #ffc107 30% 60%, #f44336 60% 100%); position:absolute; bottom:0; right:0; transform-origin:50% 100%; transition: transform 1s; }
+    .gauge-needle { position:absolute; left:50%; bottom:0; width:2px; height:30px; background-color:#333; transform-origin:bottom center; transition: transform 1s; }
+    .sparkline { height:25px; width:100%; background: linear-gradient(to right, #2196f3 10%, #4caf50 40%, #ff9800 70%, #f44336 100%); border-radius:5px; margin-top:5px; opacity:0.7; }
+
+    /* theme colors for file 2 */
+    .risk-color h3 { border-color: #f44336; color:#f44336; }
+    .legal-color h3 { border-color: #9c27b0; color:#9c27b0; }
+    .finance-color h3 { border-color: #00bcd4; color:#00bcd4; }
+    .performance-color h3 { border-color: #ff9800; color:#ff9800; }
+    .comm-color h3 { border-color: #4caf50; color:#4caf50; }
+    .system-color h3 { border-color: #2196f3; color:#2196f3; }
+
+    .modal-2 { display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.6); }
+    .modal-content-2 { background:#fff; margin:5% auto; padding:30px; border:2px solid #1f3a93; width:90%; max-width:1000px; border-radius:15px; box-shadow:0 8px 25px rgba(0,0,0,0.4); }
+    .close-btn { color:#aaa; float:left; font-size:35px; font-weight:bold; }
+    .close-btn:hover, .close-btn:focus { color:#333; text-decoration:none; cursor:pointer; }
+    .modal-details-content { padding-top:15px; font-size:1em; line-height:1.8; border-top:1px dashed #ccc; margin-top:15px; }
+
+    /* --------------------------- بنر سفارشیِ اضافه‌شده (بالای صفحه) --------------------------- */
+    .top-banner {
+      width: 100%;
+      background: linear-gradient(90deg, rgba(14,165,233,0.12), rgba(6,182,212,0.08));
+      border-left: 6px solid #0ea5e9;
+      padding: 12px 18px;
+      margin-bottom: 18px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .top-banner .title {
+      font-weight: 800;
+      color: #0b5fa7;
+      font-size: 1.05rem;
+    }
+    .top-banner .subtitle {
+      color: #475569;
+      font-size: 0.95rem;
+    }
+    .top-banner .actions { display:flex; gap:8px; align-items:center; }
+    .top-banner .badge {
+      background: #0ea5e9;
+      color: white;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:700;
+      box-shadow: 0 6px 18px rgba(14,165,233,0.18);
+    }
+
+    /* small responsive tweaks so banner looks good on mobile */
+    @media (max-width: 640px) {
+      .top-banner { flex-direction: column; align-items: flex-start; gap:6px; }
+      .top-banner .actions { width:100%; justify-content:space-between; }
+    }
+  </style>
+</head>
+<body class="font-sans">
+
+  <div class="max-w-[1400px] mx-auto p-4">
+
+    <!-- ===== بنر اختصاصی (در بالای صفحه، طبق دستور شما) ===== -->
+    <div class="top-banner" role="banner" aria-label="بنر مدیریتی بنیاد مسکن">
+      <div>
+        <div class="title">📊 پنل یکپارچه مدیریتی بنیاد مسکن — وضعیت کل سیستم (AI)</div>
+        <div class="subtitle">نمایش همزمان شاخص‌های کلیدی، هشدارها و پیشنهادهای تخصیص — آپدیت زنده هر ۵ ثانیه</div>
+      </div>
+      <div class="actions">
+        <div class="badge">Live</div>
+        <div style="font-size:0.94rem;color:#374151;">نسخهٔ ادغام‌شده</div>
+      </div>
+    </div>
+    <!-- ===== پایان بنر ===== -->
+
+    <!-- =================== شروع: هدر و کارت‌های بالای صفحه (فایل 1) =================== -->
+    <header class="flex flex-wrap items-center justify-between mb-6 pb-2 border-b border-gray-200">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-full bg-ai-primary flex items-center justify-center shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1v-3.25M7 11h10M4 11h3m10 0h3M7 4h10a3 3 0 013 3v7a3 3 0 01-3 3H7a3 3 0 01-3-3V7a3 3 0 013-3z"/></svg>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-ai-text">پنل مدیریتی هوش مصنوعی <span class="text-lg faded">رئیس بنیاد</span></h1>
+          <div class="text-sm faded">تحلیل‌ها، هشدارها و پیشنهادهای آنی برای بنیاد مسکن</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-4 mt-3 md:mt-0">
+        <div class="text-right">
+          <div class="text-sm font-medium">زمان فعلی: <span id="lastUpdated" class="stat-value font-mono">--</span></div>
+          <div class="text-xs faded">وضعیت: <span class="text-green-600 font-semibold">عملیاتی</span></div>
+        </div>
+        <button id="refreshBtn" class="px-5 py-2 rounded-full bg-ai-primary text-white font-medium shadow-md shadow-ai-primary/40 transition hover:bg-ai-secondary">
+          <span class="flex items-center gap-1">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+             بروزرسانی
+          </span>
+        </button>
+      </div>
+    </header>
+
+    <!-- کارت‌های بالای صفحه از فایل 1 -->
+    <section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-5 desktop-grid mb-6">
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">پروژه‌های فعال</div>
+          <span class="text-ai-primary"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></span>
+        </div>
+        <div id="stat-projects" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-projects-delta" class="text-sm font-semibold text-green-600">--</div>
+          <div class="text-xs faded">در ۷ روز گذشته</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniProgress" /></div>
+      </div>
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">موارد مشکوک AI</div>
+          <span class="text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.39 16c-.77 1.333.192 3 1.732 3z"/></svg></span>
+        </div>
+        <div id="stat-anomalies" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-anomalies-delta" class="text-sm font-semibold text-red-500">--</div>
+          <div class="text-xs faded">تغییر نسبت به دیروز</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniAnom"/></div>
+      </div>
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">پیشنهاد تخصیص</div>
+          <span class="text-green-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v3m-3.974 0H4a2 2 0 01-2-2V8a2 2 0 012-2h3.974m0 0V4a2 2 0 012-2h4.052a2 2 0 012 2v2m0 0h3.974a2 2 0 012 2v3a2 2 0 01-2 2h-1.974M12 18h.01M17 14h-5m-2 4h7"/></svg></span>
+        </div>
+        <div id="stat-resources" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-resources-delta" class="text-sm font-semibold text-yellow-600">--</div>
+          <div class="text-xs faded">پیشنهادهای امروز</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniAlloc"/></div>
+      </div>
+
+      <div class="card p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm faded font-medium">میانگین امتیاز عملکرد (KPI)</div>
+          <span class="text-purple-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+        </div>
+        <div id="stat-kpi" class="text-3xl font-extrabold stat-value text-ai-text">--</div>
+        <div class="flex items-center gap-2 mt-1">
+          <div id="stat-kpi-delta" class="text-sm font-semibold text-blue-600">--</div>
+          <div class="text-xs faded">تغییر نسبت به ماه قبل</div>
+        </div>
+        <div class="mt-3 chart-card"><canvas id="miniKpi"/></div>
+      </div>
+
+    </section>
+    <!-- =================== پایان: هدر و کارت‌های بالای صفحه (فایل 1) =================== -->
+
+    <!-- =================== بخش: تمام محتویات فایل 2 (بدون تغییر) =================== -->
+    <!-- بسته‌بندی شده داخل یک کانتینر که font-family فایل 2 را اعمال می‌کند -->
+    <div class="vazir-root">
+      <div class="header-2" role="banner" aria-hidden="true">
+        <h1>🏗️ سامانه جامع مدیریتی (بنیاد مسکن انقلاب اسلامی)</h1>
+        <div style="display: flex; align-items: center;">
+            <div class="ai-symbol">🧠</div>
+            <span style="font-weight: 700; color: #555;">پایش هوشمند</span>
+        </div>
+        <div>
+            <span id="update-time">ساعت ۰۹:۰۰:۰۰</span> |
+            <span style="color: #4caf50; font-weight: bold;">بروزرسانی زنده</span>
+        </div>
+      </div>
+
+      <div class="ai-summary">
+        **💡 هشدار کلیدی AI (۱۴۰۴/۰۹/۱۰):** **ریسک انحراف اعتبارات استانی به ۲۴٪ رسید.** عملکرد سامانه‌های سماع و راهبر نیازمند پایش فوری است. تیم حقوقی در بالاترین سطح ریسک قرار دارد.
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- تمام کارت‌های فایل 2 عیناً اینجا قرار می‌گیرند -->
+        <div class="card-2 performance-color" onclick="openModal('عملکرد استانی', 'performance')">
+            <h3>🔹 عملکرد استانی</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">استان برتر عملکردی (AI)</div>
+                <div class="kpi-value" id="kpi-top-province" style="color: #ff9800;">یزد (92.5)</div>
+            </div>
+            <div class="gauge-container" style="background-color: #ffc107;">
+                <div class="gauge-fill" id="gauge-province-fill" style="transform: rotate(166.5deg);"></div>
+                <div class="gauge-needle" id="gauge-province-needle" style="transform: rotate(111deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 performance-color" onclick="openModal('شاخص‌های توسعه و عمران', 'performance')">
+            <h3>🔹 شاخص‌های توسعه و عمران</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">پوشش توسعه (هدف AI)</div>
+                <div class="kpi-value" id="kpi-urban-coverage" style="color: #4caf50;">88%</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #4caf50 88%, #ff9800 12%);"></div>
+        </div>
+
+        <div class="card-2 risk-color" onclick="openModal('وضعیت پروژه‌ها (ریسک)', 'risk')">
+            <h3>🔹 وضعیت پروژه‌ها (ریسک)</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">شاخص ریسک پروژه (PRI)</div>
+                <div class="kpi-value" id="kpi-risk-value" style="color: #f44336;">18%</div>
+            </div>
+             <div class="gauge-container">
+                <div class="gauge-fill" id="gauge-risk-fill" style="transform: rotate(108deg);"></div>
+                <div class="gauge-needle" id="gauge-risk-needle" style="transform: rotate(54deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 finance-color" onclick="openModal('منابع و اعتبارات استانی', 'finance')">
+            <h3>🔹 منابع و اعتبارات استانی</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">انحراف تخصیص (AI)</div>
+                <div class="kpi-value" id="kpi-budget-deviation" style="color: #f44336;">24%</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #f44336 24%, #00bcd4 76%);"></div>
+        </div>
+
+        <div class="card-2 performance-color" onclick="openModal('ارزیابی مدیران استانی', 'performance')">
+            <h3>🔹 ارزیابی مدیران استانی</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">تعداد مدیران ضعیف (AI)</div>
+                <div class="kpi-value" id="kpi-poor-managers" style="color: #ff9800;">3</div>
+            </div>
+            <div class="gauge-container" style="background-color: #ccc;">
+                <div class="gauge-fill" id="gauge-manager-fill" style="transform: rotate(108deg);"></div>
+                <div class="gauge-needle" style="transform: rotate(54deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 comm-color" onclick="openModal('ارتباط با ریاست', 'comm')">
+            <h3>🔹 ارتباط با ریاست</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">توصیه‌های AI به ریاست</div>
+                <div class="kpi-value" id="kpi-ai-rec" style="color: #4caf50;">2 مورد</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #4caf50 50%, #e0f2f1 50%);"></div>
+        </div>
+
+        <div class="card-2 comm-color" onclick="openModal('ارتباط با نمایندگان و دستگاه‌ها', 'comm')">
+            <h3>🔹 ارتباط با نمایندگان و دستگاه‌ها</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">درخواست‌های مهم پارلمانی</div>
+                <div class="kpi-value" id="kpi-parliament-requests" style="color: #ff9800;">14</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #ff9800 10%, #e0f2f1 90%);"></div>
+        </div>
+
+        <div class="card-2 comm-color" onclick="openModal('ارتباط با مردم', 'comm')">
+            <h3>🔹 ارتباط با مردم</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">شاخص رضایت عمومی (AI)</div>
+                <div class="kpi-value" id="kpi-public-satisfaction" style="color: #4caf50;">78%</div>
+            </div>
+             <div class="gauge-container" style="background-color: #4caf50;">
+                <div class="gauge-fill" id="gauge-satisfaction-fill" style="transform: rotate(140.4deg);"></div>
+                <div class="gauge-needle" style="transform: rotate(93.6deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 comm-color" onclick="openModal('پیگیری و پاسخگویی متمرکز', 'comm')">
+            <h3>🔹 پیگیری و پاسخگویی متمرکز</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">زمان متوسط پاسخگویی (ساعت)</div>
+                <div class="kpi-value" id="kpi-response-time" style="color: #4caf50;">2.1h</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #4caf50 90%, #ff9800 10%);"></div>
+        </div>
+
+        <div class="card-2 legal-color" onclick="openModal('تحلیل مواضع نمایندگان', 'legal')">
+            <h3>🔹 تحلیل مواضع نمایندگان</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">مواضع منفی (AI)</div>
+                <div class="kpi-value" id="kpi-negative-stances" style="color: #f44336;">5 نماینده</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #f44336 20%, #9c27b0 80%);"></div>
+        </div>
+
+        <div class="card-2 legal-color" onclick="openModal('پرونده‌های حقوقی', 'legal')">
+            <h3>🔹 پرونده‌های حقوقی (ریسک)</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">پرونده‌های پرخطر (AI)</div>
+                <div class="kpi-value" id="kpi-high-risk-cases" style="color: #f44336;">12</div>
+            </div>
+             <div class="gauge-container" style="background-color: #ff9800;">
+                <div class="gauge-fill" id="gauge-legal-fill" style="transform: rotate(129.6deg);"></div>
+                <div class="gauge-needle" style="transform: rotate(72deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 legal-color" onclick="openModal('ارزشیابی و وضعیت استخدامی', 'legal')">
+            <h3>🔹 ارزشیابی و وضعیت استخدامی</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">ریسک بالای ترک خدمت (AI)</div>
+                <div class="kpi-value" id="kpi-turnover-risk" style="color: #ff9800;">6.0%</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #9c27b0 60%, #e1bee7 40%);"></div>
+        </div>
+
+        <div class="card-2 system-color" onclick="openModal('سامانه‌های کلیدی (GIS/سماع/راهبر)', 'system')">
+            <h3>🔹 سامانه‌های کلیدی (GIS/سماع/راهبر)</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">وضعیت سلامت سامانه (AI)</div>
+                <div class="kpi-value" id="kpi-system-health" style="color: #f44336;">78%</div>
+            </div>
+             <div class="gauge-container" style="background-color: #2196f3;">
+                <div class="gauge-fill" id="gauge-health-fill" style="transform: rotate(140.4deg);"></div>
+                <div class="gauge-needle" style="transform: rotate(93.6deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 system-color" onclick="openModal('نظام فنی روستایی و کتابخانه', 'system')">
+            <h3>🔹 نظام فنی روستایی و کتابخانه</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">انطباق پروژه‌ها با نظام فنی</div>
+                <div class="kpi-value" id="kpi-technical-compliance" style="color: #4caf50;">95%</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #4caf50 95%, #e0f2f1 5%);"></div>
+        </div>
+
+        <div class="card-2 comm-color" onclick="openModal('پایش مصوبات دولت و اعتبارات', 'comm')">
+            <h3>🔹 پایش مصوبات دولت و اعتبارات</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">درصد تخصیص محقق شده</div>
+                <div class="kpi-value" id="kpi-allocation-achieved" style="color: #4caf50;">85%</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #4caf50 85%, #ff9800 15%);"></div>
+        </div>
+
+        <div class="card-2 finance-color" onclick="openModal('اطلاعات مالی و عملکرد شرکت‌ها', 'finance')">
+            <h3>🔹 اطلاعات مالی و عملکرد شرکت‌ها</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">امتیاز مالی شرکت‌ها (AI)</div>
+                <div class="kpi-value" id="kpi-company-score" style="color: #00bcd4;">8.7/10</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #00bcd4 87%, #ff9800 13%);"></div>
+        </div>
+
+        <div class="card-2 comm-color" onclick="openModal('تحلیل بازخورد رسانه‌ای', 'comm')">
+            <h3>🔹 تحلیل بازخورد رسانه‌ای</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">شاخص احساسات عمومی (AI)</div>
+                <div class="kpi-value" id="kpi-media-sentiment" style="color: #ff9800;">45% مثبت</div>
+            </div>
+             <div class="gauge-container" style="background-color: #ccc;">
+                <div class="gauge-fill" id="gauge-sentiment-fill" style="transform: rotate(81deg);"></div>
+                <div class="gauge-needle" style="transform: rotate(40.5deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 performance-color" onclick="openModal('شاخص‌های کلان عملکردی', 'performance')">
+            <h3>🔹 شاخص‌های کلان عملکردی</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">شاخص عملکرد کلی سازمان</div>
+                <div class="kpi-value" id="kpi-overall-performance" style="color: #4caf50;">84%</div>
+            </div>
+            <div class="gauge-container" style="background-color: #ff9800;">
+                <div class="gauge-fill" id="gauge-overall-fill" style="transform: rotate(151.2deg);"></div>
+                <div class="gauge-needle" style="transform: rotate(100.8deg);"></div>
+            </div>
+        </div>
+
+        <div class="card-2 risk-color" onclick="openModal('نقشه و پیشرفت فیزیکی پروژه‌ها', 'risk')">
+            <h3>🔹 نقشه و پیشرفت فیزیکی پروژه‌ها</h3>
+            <div class="kpi-container">
+                <div class="kpi-label">انطباق ماهواره‌ای (CV)</div>
+                <div class="kpi-value" id="kpi-satellite-compliance" style="color: #4caf50;">92%</div>
+            </div>
+            <div class="sparkline" style="background: linear-gradient(to right, #4caf50 92%, #f44336 8%);"></div>
+        </div>
+
+      </div>
+
+      <!-- مودال فایل 2 -->
+      <div id="myModal" class="modal-2">
+        <div class="modal-content-2">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title" style="color: #1f3a93;"></h2>
+            <div class="modal-details-content">
+                <p><strong>تحلیل هوشمند AI و جزئیات کامل:</strong></p>
+                <div id="modal-details"></div>
+
+                <hr style="margin-top: 20px;">
+                <p style="color: #f44336; font-weight: bold;">⚠️ توصیه‌های فوری AI:</p>
+                <ul id="modal-recommendations"></ul>
+            </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- =================== پایان: محتویات فایل 2 =================== -->
+
+    <!-- =================== شروع: بقیهٔ محتویات فایل 1 (نمودارها، جداول، فید، مودال و اسکریپت‌ها) =================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+
+      <div class="col-span-1">
+        <div class="card p-5 h-full">
+          <h2 class="text-lg font-bold mb-4 border-b pb-2">قابلیت‌های کلیدی هوش مصنوعی 🧠</h2>
+          <div class="grid grid-cols-1 gap-3">
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="anomaly">
+              <div>
+                <div class="text-base font-semibold text-ai-text">موتور تشخیص تخلف</div>
+                <div class="text-xs faded">شناسایی موارد مشکوک مالی و گزارش‌های غیرواقعی</div>
+              </div>
+              <span class="text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="forecast">
+              <div>
+                <div class="text-base font-semibold text-ai-text">پیش‌بینی تأخیر پروژه‌ها</div>
+                <div class="text-xs faded">پیش‌بینی پروژه‌های در خطر تا ۳۰ روز آینده</div>
+              </div>
+              <span class="text-blue-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="allocator">
+              <div>
+                <div class="text-base font-semibold text-ai-text">پیشنهاد تخصیص منابع</div>
+                <div class="text-xs faded">پیشنهاد هوشمند سرریز یا انتقال اعتبار بین پروژه‌ها</div>
+              </div>
+              <span class="text-green-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="risk">
+              <div>
+                <div class="text-base font-semibold text-ai-text">پیش‌بینی ریسک بحران</div>
+                <div class="text-xs faded">هشدار و نقشه مبتنی بر داده‌های جغرافیایی و هواشناسی</div>
+              </div>
+              <span class="text-yellow-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="ranking">
+              <div>
+                <div class="text-base font-semibold text-ai-text">رتبه‌بندی عملکرد</div>
+                <div class="text-xs faded">مقایسه KPIها، بودجه و کیفیت گزارش‌دهی استان‌ها</div>
+              </div>
+              <span class="text-purple-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.333 0 2.667.5 4 1.5l-4 4-4-4c1.333-1 2.667-1.5 4-1.5z"/></svg></span>
+            </button>
+
+            <button class="featureBtn w-full text-right p-3 bg-ai-bg border border-gray-200 hover:border-ai-primary/50 rounded-lg flex items-center justify-between transition" data-feature="doc">
+              <div>
+                <div class="text-base font-semibold text-ai-text">تحلیل مکاتبات</div>
+                <div class="text-xs faded">خلاصه‌سازی، اولویت‌بندی و استخراج تصمیم از اسناد</div>
+              </div>
+              <span class="text-orange-500"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-span-1 lg:col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+          <div class="card p-5">
+            <h3 class="text-lg font-bold mb-1">پیشرفت تجمعی پروژه‌ها</h3>
+            <div class="text-sm faded mb-3">نمای کلی پیشرفت در استان‌ها</div>
+            <div class="flex items-end justify-between">
+              <div>
+                <div class="text-4xl font-extrabold text-ai-primary" id="projPerc">-- %</div>
+              </div>
+              <div class="text-xs faded">شاخص کل میانگین</div>
+            </div>
+            <div class="mt-4"><canvas id="projChart"></canvas></div>
+          </div>
+
+          <div class="card p-5">
+            <h3 class="text-lg font-bold mb-1">نمودار موارد مشکوک</h3>
+            <div class="text-sm faded mb-3">توزیع ناهنجاری‌های شناسایی شده توسط AI</div>
+            <div class="flex items-end justify-between">
+              <div>
+                <div class="text-base font-semibold text-red-500" id="anomTopProv">استان با بالاترین هشدار: --</div>
+              </div>
+              <div class="text-xs faded">هشدار روزانه</div>
+            </div>
+            <div class="mt-4"><canvas id="anomChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card p-5">
+          <h3 class="text-lg font-bold mb-3 border-b pb-2">رویدادهای اخیر و تصمیم‌های پیشنهادی</h3>
+
+          <div class="mb-4">
+            <div class="text-sm font-semibold mb-2">💰 پیشنهادهای تخصیص اعتبار (هوشمند)</div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-right text-sm">
+                <thead class="text-xs text-ai-faded border-b">
+                  <tr>
+                    <th class="py-2 px-1">استان</th>
+                    <th class="py-2 px-1">پروژه هدف</th>
+                    <th class="py-2 px-1">وضعیت</th>
+                    <th class="py-2 px-1">پیشنهاد (میلیون تومان)</th>
+                  </tr>
+                </thead>
+                <tbody id="allocTable" class="text-ai-text divide-y divide-gray-100">
+                  </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="text-sm font-semibold mb-2 mt-4">📢 فید هشدارها و تحلیل‌های لحظه‌ای</div>
+            <ul id="activityFeed" class="space-y-3 text-sm text-ai-text">
+              </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <footer class="flex items-center justify-between text-sm faded mt-6 pt-4 border-t border-gray-200">
+      <div>نسخهٔ نمایشی — داده‌ها فرضی و نزدیک به واقعیت برای بنیاد مسکن</div>
+      <div class="flex gap-3">
+        <button id="exportPdf" class="px-4 py-1 rounded bg-gray-100 text-ai-text border hover:bg-gray-200">خروجی PDF</button>
+        <button id="openReport" class="px-4 py-1 rounded bg-ai-primary text-white border border-ai-primary hover:bg-ai-secondary">گزارش جامع AI</button>
+      </div>
+    </footer>
+
+    <!-- مودال فایل 1 -->
+    <div id="modal" class="fixed inset-0 z-50 items-center justify-center p-4 transition-opacity duration-300">
+      <div class="absolute inset-0 bg-black/70" data-close></div>
+      <div class="bg-ai-card border border-gray-200 rounded-xl shadow-2xl w-full max-w-4xl p-6 relative transform transition-all sm:my-8 sm:align-middle sm:w-full sm:p-6 card">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h4 id="modalTitle" class="text-2xl font-bold text-ai-primary">عنوان</h4>
+            <div id="modalSubtitle" class="text-base faded mt-1">زیرعنوان</div>
+          </div>
+          <div class="text-right">
+            <button data-close class="px-4 py-2 rounded-full bg-gray-100 border border-gray-300 text-ai-text hover:bg-gray-200">بستن</button>
+          </div>
+        </div>
+        <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-3 bg-ai-bg rounded-lg">
+            <canvas id="modalChart" style="max-height:300px"></canvas>
+          </div>
+          <div class="p-3">
+            <div class="text-sm font-semibold border-b pb-1">خلاصه تحلیلی هوش مصنوعی</div>
+            <div id="modalSummary" class="mt-3 text-ai-text leading-7"></div>
+            <div class="mt-5">
+              <h5 class="text-sm font-semibold border-b pb-1">اقدامات پیشنهادی کلیدی</h5>
+              <ul id="modalActions" class="list-disc list-inside text-ai-text mt-3 space-y-1 text-sm mr-4"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- container -->
+
+  <!-- =================== اسکریپت‌ها: ابتدا فایل 2 (عیناً) سپس فایل 1 (عیناً) =================== -->
+
+  <!-- اسکریپت‌های فایل 2 -->
+  <script>
+    // --- اسکریپت‌های فایل 2 (شبیه‌سازی و مودال) ---
+    const simulatedData = {
+      'عملکرد استانی': {
+          details: '**شاخص‌های کلان عملکردی استان‌ها (KPI):** این بخش بر اساس خروجی مدل‌های هوش مصنوعی (AI) که شاخص‌هایی نظیر سرعت اجرای طرح، کیفیت ساخت و میزان رضایت محلی را تحلیل می‌کنند، رتبه‌بندی شده است. **یزد** به دلیل بهینه‌سازی مصرف منابع، همچنان در صدر است.',
+          recommendations: ['بررسی دلایل ضعف استان‌های انتهایی جدول.', 'انتقال تجربیات استان یزد به سایر واحدها.'],
+          kpis: [{label: "استان برتر", value: "یزد (92.5)"}, {label: "استان ضعیف‌تر", value: "سیستان و بلوچستان (65.2)"}]
+      },
+      'شاخص‌های توسعه و عمران': {
+          details: '**پوشش توسعه روستایی:** AI میزان انطباق طرح‌های هادی و عمرانی با نیازهای جمعیتی و هدف‌گذاری‌های توسعه پایدار را پایش می‌کند. ۸۸٪ پوشش هدف‌گذاری نشان‌دهنده عملکرد خوب است.',
+          recommendations: ['تخصیص ۳۰٪ بودجه بیشتر به طرح‌های توسعه منطبق با اقلیم.', 'پایش دقیق روستاهای مرزی.'],
+          kpis: [{label: "پوشش توسعه (AI)", value: "88%"}, {label: "پروژه‌های نیازمند بازنگری", value: "250"}]
+      },
+      'وضعیت پروژه‌ها (ریسک)': {
+          details: '**ریسک تأخیر (PRI):** مدل‌های پیش‌بینی، بر اساس گزارش‌های مالی، زمان‌بندی و عملکرد پیمانکاران، احتمال تأخیر در پروژه‌های بزرگ را ۱۸٪ تخمین زده‌اند. این بخش شامل هشدار ناهنجاری در گزارش پیشرفت فیزیکی نیز هست.',
+          recommendations: ['بازرسی غیرمنتظره از پروژه‌های پرریسک.', 'تعدیل زمان‌بندی ۳ پروژه کلیدی.'],
+          kpis: [{label: "شاخص ریسک پروژه (PRI)", value: "18%"}, {label: "ناهنجاری‌های مالی", value: "8"}]
+      },
+      'منابع و اعتبارات استانی': {
+          details: '**انحراف تخصیص:** AI الگوی تخصیص بودجه را با نیاز واقعی (بر اساس آمار محرومیت، جمعیت و پیشرفت) مقایسه می‌کند. ۲۴٪ انحراف نشان می‌دهد که بودجه به صورت بهینه توزیع نشده و خطر هدررفت منابع وجود دارد.',
+          recommendations: ['مسدودسازی موقت اعتبارات استان‌های با انحراف بالا.', 'برنامه‌ریزی مجدد تخصیص‌ها بر اساس توصیه AI.'],
+          kpis: [{label: "انحراف تخصیص (AI)", value: "24%"}, {label: "مازاد اعتبار تخصیص داده شده", value: "۵۰ میلیارد ریال"}]
+      },
+      'ارزیابی مدیران استانی': {
+          details: '**مدل ارزیابی چندمتغیره:** مدیران بر اساس خروجی‌های هوشمند (مانند ریسک پروژه‌های تحت نظر، سرعت پاسخگویی و رتبه عملکرد استان) ارزیابی می‌شوند. AI سه مدیر را در سطح ضعیف شناسایی کرده است.',
+          recommendations: ['تشکیل جلسات توجیهی برای مدیران سطح ضعیف.', 'استفاده از سیستم بازخورد ۳۶۰ درجه.'],
+          kpis: [{label: "تعداد مدیران ضعیف (AI)", value: "3 نفر"}, {label: "متوسط امتیاز ارزیابی", value: "82%"}]
+      },
+      'ارتباط با ریاست': {
+          details: '**خلاصه‌سازی و توصیه‌دهی:** AI مکاتبات و گزارش‌ها را فشرده کرده و نکات حیاتی روز را به صورت خودکار برای ریاست تولید می‌کند. امروز دو توصیه فوری در مورد امور مالی ارائه شده است.',
+          recommendations: ['اعمال سریع توصیه‌های AI در تصمیم‌گیری‌های روزانه.'],
+          kpis: [{label: "توصیه‌های AI به ریاست", value: "2 مورد"}, {label: "زمان تولید گزارش", value: "0.5h"}]
+      },
+      // ... بقیه داده‌ها در فایل 2 (همان‌طور که بود) ...
+    };
+
+    function openModal(title, type) {
+        const data = simulatedData[title];
+        document.getElementById('modal-title').innerText = title + ' - جزئیات تحلیلی هوشمند';
+
+        let detailsContent = data && data.details ? data.details : 'جزئیاتی برای این بخش تعریف نشده است.';
+        detailsContent += '<br><br><strong>خروجی‌های عددی و شاخص‌ها:</strong><br>';
+        if (data && data.kpis && data.kpis.length > 0) {
+            data.kpis.forEach(kpi => {
+                detailsContent += ` - ${kpi.label}: <strong>${kpi.value}</strong><br>`;
+            });
+        }
+        document.getElementById('modal-details').innerHTML = detailsContent;
+
+        const ul = document.getElementById('modal-recommendations');
+        ul.innerHTML = '';
+        if (data && data.recommendations) data.recommendations.forEach(rec => {
+            const li = document.createElement('li');
+            li.innerText = rec;
+            ul.appendChild(li);
+        });
+
+        document.getElementById('myModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('myModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('myModal')) {
+            closeModal();
+        }
+    }
+
+    function updateData() {
+        const now = new Date();
+        if (document.getElementById('update-time')) document.getElementById('update-time').innerText = now.toLocaleTimeString('fa-IR');
+
+        // sample dynamic updates (file 2)
+        let newRisk = (17 + Math.random() * 3).toFixed(1);
+        if (document.getElementById('kpi-risk-value')) document.getElementById('kpi-risk-value').innerText = newRisk + '%';
+
+        let angle = (parseFloat(newRisk) / 100) * 180;
+        if (document.getElementById('gauge-risk-needle')) document.getElementById('gauge-risk-needle').style.transform = `rotate(${angle / 2}deg)`;
+        if (document.getElementById('gauge-risk-fill')) document.getElementById('gauge-risk-fill').style.transform = `rotate(${angle}deg)`;
+
+        let newLegalRisk = Math.floor(11 + Math.random() * 5);
+        if (document.getElementById('kpi-high-risk-cases')) document.getElementById('kpi-high-risk-cases').innerText = newLegalRisk;
+
+        let newCompliance = (90 + Math.random() * 5).toFixed(0);
+        if (document.getElementById('kpi-satellite-compliance')) document.getElementById('kpi-satellite-compliance').innerText = newCompliance + '%';
+    }
+
+    updateData();
+    setInterval(updateData, 7000);
+  </script>
+
+  <!-- اسکریپت‌های فایل 1 -->
+  <script>
+    // ---------- Mock realistic dataset (file 1) ----------
+    const provinces = ['تهران', 'اصفهان', 'خراسان رضوی', 'خوزستان', 'گیلان', 'فارس', 'کرمان', 'آذربایجان شرقی'];
+
+    function random(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+
+    let state = {
+      projects: 1280,
+      anomalies: 27,
+      resourceProposals: 9,
+      avgKpi: random(70, 90),
+      projProgress: Array.from({ length: provinces.length }, () => random(45, 85)),
+      anomByProv: provinces.map(p => ({ prov: p, anoms: random(0, 10) })),
+      allocations: [
+        { prov: 'تهران', project: 'بازسازی بلوک A', value: 200, status: 'در حال بررسی' },
+        { prov: 'خوزستان', project: 'تعمیر سقف روستاها', value: 120, status: 'تایید اضطراری' },
+        { prov: 'کرمان', project: 'بازسازی راه روستایی', value: 80, status: 'منتظر تایید' }
+      ],
+      feed: []
+    }
+
+    // Chart.js global config for light theme and RTL
+    Chart.defaults.font.family = 'Tahoma, sans-serif';
+    Chart.defaults.color = '#374151';
+    Chart.defaults.borderColor = '#e5e7eb';
+    Chart.defaults.plugins.tooltip.rtl = true;
+    Chart.defaults.plugins.legend.rtl = true;
+    Chart.defaults.plugins.tooltip.titleAlign = 'right';
+    Chart.defaults.plugins.tooltip.bodyAlign = 'right';
+
+    // Utility to update header timestamp
+    function updateTimestamp() { document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('fa-IR'); }
+
+    // small sparkline charts
+    let miniProgressChart, miniAnomChart, miniAllocChart, miniKpiChart, projChart, anomChart, modalChart;
+
+    function makeSpark(canvasId, data, color) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 150);
+      gradient.addColorStop(0, color + '50');
+      gradient.addColorStop(1, '#ffffff00');
+
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map((_, i) => i + 1),
+          datasets: [{
+            data,
+            fill: 'start',
+            borderColor: color,
+            backgroundColor: gradient,
+            pointRadius: 0,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          elements: { line: { tension: 0.45 } },
+          scales: { x: { display: false }, y: { display: false } }
+        }
+      })
+    }
+
+    // main charts
+    function createCharts() {
+      miniProgressChart = makeSpark('miniProgress', state.projProgress, '#0ea5e9');
+      miniAnomChart = makeSpark('miniAnom', state.anomByProv.map(d => d.anoms), '#ef4444');
+      miniAllocChart = makeSpark('miniAlloc', state.allocations.map(a => a.value), '#10b981');
+      miniKpiChart = makeSpark('miniKpi', Array.from({ length: 7 }, () => random(60, 95)), '#8b5cf6');
+
+      const ctx1 = document.getElementById('projChart').getContext('2d');
+      projChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: provinces,
+          datasets: [{
+            label: 'پیشرفت میانگین %',
+            data: state.projProgress,
+            backgroundColor: '#0ea5e9',
+            borderColor: '#0ea5e9',
+            borderWidth: 1,
+            borderRadius: 5,
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: { display: false }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { ticks: { mirror: true, padding: 10 } }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById('anomChart').getContext('2d');
+      anomChart = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: provinces,
+          datasets: [{
+            data: state.anomByProv.map(d => d.anoms),
+            backgroundColor: ['#f43f5e', '#fb923c', '#0ea5e9', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b', '#06b6d4'],
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+              }
+            }
+          }
+        }
+      });
+
+      const ctx3 = document.getElementById('modalChart').getContext('2d');
+      modalChart = new Chart(ctx3, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'شاخص', data: [], borderColor: '#0ea5e9', backgroundColor: '#0ea5e930', fill: true }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true }
+            }
+        }
+      });
+    }
+
+    // render functions
+    function renderStats() {
+      if (document.getElementById('stat-projects')) document.getElementById('stat-projects').innerText = state.projects.toLocaleString('fa-IR');
+      if (document.getElementById('stat-anomalies')) document.getElementById('stat-anomalies').innerText = state.anomalies.toLocaleString('fa-IR');
+      if (document.getElementById('stat-resources')) document.getElementById('stat-resources').innerText = state.resourceProposals.toLocaleString('fa-IR');
+      if (document.getElementById('stat-kpi')) document.getElementById('stat-kpi').innerText = state.avgKpi.toFixed(1).toLocaleString('fa-IR');
+
+      const projDelta = random(-5, 5);
+      const anomDelta = random(-30, 30);
+      const resDelta = random(-10, 10);
+      const kpiDelta = (Math.random() * 2 - 1).toFixed(1);
+
+      if (document.getElementById('stat-projects-delta')) {
+        document.getElementById('stat-projects-delta').innerText = (projDelta > 0 ? '+' : '') + projDelta + '%';
+        document.getElementById('stat-projects-delta').className = projDelta > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-500';
+      }
+      if (document.getElementById('stat-anomalies-delta')) {
+        document.getElementById('stat-anomalies-delta').innerText = (anomDelta > 0 ? '+' : '') + anomDelta + '%';
+        document.getElementById('stat-anomalies-delta').className = anomDelta > 0 ? 'text-sm font-semibold text-red-500' : 'text-sm font-semibold text-green-600';
+      }
+      if (document.getElementById('stat-resources-delta')) {
+        document.getElementById('stat-resources-delta').innerText = (resDelta > 0 ? '+' : '') + resDelta + '%';
+        document.getElementById('stat-resources-delta').className = resDelta > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-500';
+      }
+      if (document.getElementById('stat-kpi-delta')) {
+        document.getElementById('stat-kpi-delta').innerText = (kpiDelta > 0 ? '+' : '') + kpiDelta + '%';
+        document.getElementById('stat-kpi-delta').className = kpiDelta > 0 ? 'text-sm font-semibold text-green-600' : 'text-sm font-semibold text-red-500';
+      }
+
+      const totalProgress = state.projProgress.reduce((a, b) => a + b, 0);
+      if (document.getElementById('projPerc')) document.getElementById('projPerc').innerText = Math.round(totalProgress / state.projProgress.length) + ' %';
+      const top = state.anomByProv.slice().sort((a, b) => b.anoms - a.anoms)[0];
+      if (document.getElementById('anomTopProv')) document.getElementById('anomTopProv').innerText = top ? `${top.prov} (${top.anoms} مورد)` : 'بدون هشدار فوری';
+
+      const tbody = document.getElementById('allocTable'); if (tbody) tbody.innerHTML = '';
+      state.allocations.forEach(a => {
+        const tr = document.createElement('tr');
+        const statusClass = a.status.includes('اضطراری') ? 'text-red-500 font-medium' : a.status.includes('تایید') ? 'text-green-500' : 'text-yellow-600';
+        tr.innerHTML = `<td class='py-2 px-1'>${a.prov}</td><td class='py-2 px-1'>${a.project}</td><td class='py-2 px-1 ${statusClass}'>${a.status}</td><td class='py-2 px-1 font-bold stat-value'>${a.value.toLocaleString('fa-IR')}</td>`;
+        if (tbody) tbody.appendChild(tr);
+      });
+
+      const feed = document.getElementById('activityFeed'); if (feed) feed.innerHTML = '';
+      state.feed.slice().reverse().forEach(e => {
+        const colorClass = e.meta.includes('تخلف') ? 'text-red-500' : e.meta.includes('پیشنهاد') ? 'text-green-500' : 'text-blue-500';
+        const li = document.createElement('li');
+        li.className = 'border-b border-gray-100 last:border-b-0 pb-3 pt-1';
+        li.innerHTML = `<div class='flex justify-between items-start'>
+            <div><div class='text-sm font-medium'>${e.text}</div>
+            <div class='text-xs faded mt-1'>از <span class="${colorClass} font-semibold">${e.meta}</span></div></div>
+            <div class='text-xs font-medium faded'>${e.time}</div>
+          </div>`;
+        if (feed) feed.appendChild(li);
+      });
+    }
+
+    // simulate live updates
+    function stepUpdate() {
+      state.projects += random(-3, 5);
+      state.anomalies = Math.max(0, state.anomalies + random(-2, 3));
+      state.resourceProposals = Math.max(0, state.resourceProposals + random(-1, 2));
+      state.avgKpi = Math.min(95, Math.max(65, state.avgKpi + (Math.random() * 1 - 0.5)));
+
+      state.projProgress.forEach((p, i) => state.projProgress[i] = Math.max(20, Math.min(99, p + random(-1, 2))));
+      state.anomByProv.forEach(a => { a.anoms = Math.max(0, a.anoms + random(-1, 1)) });
+
+      if (Math.random() < 0.8) {
+        const type = random(1, 4);
+        let text, meta;
+        if (type === 1) {
+          text = `تشخیص الگوی غیرمعمول در مصرف منابع پروژهٔ ${provinces[random(0, provinces.length - 1)]}`;
+          meta = 'موتور تشخیص تخلف';
+        } else if (type === 2) {
+          text = `پیش‌بینی ریسک تأخیر ۲۵ روزه برای پروژهٔ ${provinces[random(0, provinces.length - 1)]}`;
+          meta = 'موتور پیش‌بینی';
+        } else if (type === 3) {
+          text = `پیشنهاد تخصیص ۲۰۰ میلیون تومان اعتبار به استان ${provinces[random(0, provinces.length - 1)]}`;
+          meta = 'موتور تخصیص هوشمند';
+        } else {
+          text = `خلاصه‌سازی نامهٔ ${random(1000, 9999)} با دستور اقدام: پیگیری پیمانکار`;
+          meta = 'تحلیل مکاتبات';
+        }
+        state.feed.push({ time: new Date().toLocaleTimeString('fa-IR'), text, meta });
+        if (state.feed.length > 20) state.feed.shift();
+      }
+
+      // update charts
+      try {
+        miniProgressChart.data.datasets[0].data = state.projProgress; miniProgressChart.update();
+        miniAnomChart.data.datasets[0].data = state.anomByProv.map(d => d.anoms); miniAnomChart.update();
+        miniAllocChart.data.datasets[0].data = state.allocations.map(a => a.value); miniAllocChart.update();
+
+        projChart.data.datasets[0].data = state.projProgress; projChart.update();
+        anomChart.data.datasets[0].data = state.anomByProv.map(d => d.anoms); anomChart.update();
+      } catch (e) {
+        // charts may not be ready yet
+      }
+
+      renderStats(); updateTimestamp();
+    }
+
+    // feature modal content
+    function openFeature(key) {
+      const modal = document.getElementById('modal');
+      if (!modal) return;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      const title = document.getElementById('modalTitle');
+      const subtitle = document.getElementById('modalSubtitle');
+      const summary = document.getElementById('modalSummary');
+      const actions = document.getElementById('modalActions');
+
+      actions.innerHTML = '';
+      let chartData = [];
+      let chartLabels = [];
+      let chartType = 'line';
+      let chartColor = '#0ea5e9';
+
+      const dataConfig = {
+        anomaly: {
+          title: 'موتور تشخیص تخلف و ناهنجاری',
+          subtitle: 'شناسایی موارد مشکوک مالی و گزارش‌های غیرواقعی',
+          summary: '<p>سیستم با تلفیق داده‌های مالی، گزارش‌های پیشرفت، و تصاویر پروژه، غیرطبیعی بودن الگوهای گزارش‌دهی و مصرف را شناسایی می‌کند. **استان با بیشترین ناهنجاری، خراسان رضوی است.**</p>',
+          actions: ['علامت‌گذاری پروژه‌های پرنوسان', 'ارسال پرونده برای بازبینی حضوری', 'بلوک کردن پرداخت تا روشن‌شدن وضعیت'],
+          data: state.anomByProv.map(d => d.anoms), labels: provinces, type: 'bar', color: '#ef4444'
+        },
+        forecast: {
+          title: 'پیش‌بینی تأخیر پروژه‌ها',
+          subtitle: 'پیش‌بینی ۳۰روزه مبتنی بر تاریخچه و شرایط محیطی',
+          summary: '<p>الگوریتم‌های سری‌زمان و مدل‌های درختی با داده‌های پیمانکاران، هوای منطقه و روند پیشرفت، احتمال تاخیر را محاسبه می‌کنند. **حدود ۸٪ از پروژه‌ها در خطر تأخیر بیش از ۱۵ روز هستند.**</p>',
+          actions: ['اولویت‌بندی بازدیدهای میدانی', 'تغییر پیمانکار یا اعزام نیروی پشتیبان'],
+          data: [random(10,50), random(20,60), random(5,30)], labels: ['30 روز','15 روز','7 روز'], type: 'line', color: '#0ea5e9'
+        },
+        allocator: {
+          title: 'پیشنهاد هوشمند تخصیص منابع',
+          subtitle: 'الگوریتم بهینه‌سازی تخصیص بودجه',
+          summary: '<p>محاسبه پیشنهادهای تخصیص اعتبار بر اساس مصادیق نیاز، ریسک و ظرفیت اجرا. **۴۰٪ پیشنهادها در حال حاضر روی پروژه‌های با ریسک تأخیر بالا متمرکز هستند.**</p>',
+          actions: ['پیشنهاد انتقال اعتبار', 'پیشنهاد توقف پروژه', 'پیشنهاد تزریق اعتبار اضطراری'],
+          data: [random(50, 80), random(20, 50), random(10, 30)], labels: ['درصد تزریق', 'درصد انتقال', 'درصد توقف'], type: 'pie', color: '#10b981'
+        },
+        risk: {
+          title: 'پیش‌بینی ریسک بحران',
+          subtitle: 'هشدار و نقشه مبتنی بر داده‌های جغرافیایی',
+          summary: '<p>مدل‌های تلفیقی بر پایه هواشناسی و داده‌های محلی ریسک وقوع بحران را پیش‌بینی می‌کنند و برای ۵ پروژه نمره ریسک بالا صادر شده است.</p>',
+          actions: ['اطلاع‌رسانی فوری به استان‌ها', 'تهیه دستورالعمل اضطراری'], 
+          data: [random(1,5), random(1,5), random(1,5)], labels: ['خطر بالا','خطر متوسط','خطر پایین'], type: 'bar', color:'#f59e0b'
+        }
+      };
+
+      const config = dataConfig[key] || dataConfig['anomaly'];
+
+      title.innerText = config.title;
+      subtitle.innerText = config.subtitle;
+      summary.innerHTML = config.summary;
+      config.actions.forEach(a => {
+        const li = document.createElement('li'); li.innerText = a; actions.appendChild(li);
+      });
+
+      // update modal chart
+      try {
+        modalChart.data.labels = config.labels;
+        modalChart.data.datasets[0].data = config.data;
+        modalChart.data.datasets[0].borderColor = config.color;
+        modalChart.update();
+      } catch (e) {}
+    }
+
+    // DOM events
+    document.querySelectorAll('.featureBtn').forEach(b => {
+      b.addEventListener('click', () => openFeature(b.dataset.feature))
+    });
+    document.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', () => {
+      const m = document.getElementById('modal'); if (m) { m.classList.remove('active'); document.body.style.overflow = 'auto'; }
+    }));
+    document.getElementById('refreshBtn').addEventListener('click', () => { stepUpdate(); });
+
+    // Initial load and updates
+    createCharts();
+    renderStats();
+    updateTimestamp();
+    for (let i = 0; i < 5; i++) stepUpdate();
+
+    // Live updates every 5s (simulating stream)
+    setInterval(stepUpdate, 5000);
+
+    // export (dummy)
+    document.getElementById('exportPdf').addEventListener('click', () => { alert('خروجی PDF آماده شد (شبیه‌سازی)'); });
+    document.getElementById('openReport').addEventListener('click', () => { alert('باز کردن گزارش کامل هوش مصنوعی (شبیه‌سازی)'); });
+  </script>
+
+</body>
+</html>
