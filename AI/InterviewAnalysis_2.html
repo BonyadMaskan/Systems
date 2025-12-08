@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیل مصاحبه‌ها و سخنرانی‌های ریاست بنیاد مسکن (AI-Driven Executive Summary)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* تعریف فونت Vazirmatn برای کل بدنه */
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f7f9fb;
+            margin: 0;
+            padding: 20px;
+            color: #2c3e50;
+            line-height: 1.8;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 4px solid #3498db; /* رنگ اصلی */
+            padding-bottom: 20px;
+        }
+        header h1 {
+            color: #2c3e50;
+            font-size: 2.4em;
+            font-weight: 900;
+            margin: 0 0 5px 0;
+        }
+        header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            font-weight: 400;
+        }
+        
+        /* استایل برای عناوین دسته‌بندی‌ها (بخش خلاصه) */
+        .section-title {
+            font-size: 1.8em;
+            color: #27ae60; /* رنگ موفقیت / سبز */
+            border-right: 6px solid #27ae60;
+            padding-right: 15px;
+            margin-top: 45px;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        
+        /* استایل کارت‌ها (Grid Layout) */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        .card {
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            background-color: #f8f9fa;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .card-icon {
+            font-size: 2.2em;
+            margin-left: 15px;
+            color: #3498db;
+        }
+        .card-title {
+            font-size: 1.4em;
+            color: #34495e;
+            font-weight: 700;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+            flex-grow: 1;
+        }
+        .card-content {
+            font-size: 1em;
+            color: #34495e;
+            line-height: 1.7;
+        }
+        
+        /* استایل‌های اختصاصی برای دسته‌بندی‌ها */
+        .risk-card {
+            background-color: #f9ebea;
+            border-right: 5px solid #e74c3c;
+        }
+        .risk-card .card-icon { color: #e74c3c; }
+
+        .priority-card {
+            background-color: #eaf2f8;
+            border-right: 5px solid #3498db;
+        }
+        .priority-card .card-icon { color: #3498db; }
+        
+        .action-card {
+            background-color: #e8f8f5;
+            border-right: 5px solid #1abc9c;
+        }
+        .action-card .card-icon { color: #1abc9c; }
+        .action-detail {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #c9c9c9;
+            font-size: 0.95em;
+        }
+        .action-detail b {
+            display: block;
+            margin-top: 8px;
+            font-weight: 700;
+        }
+        
+        /* بخش نمایش متن اصلی تفکیک شده */
+        .original-text-section {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 3px dashed #bdc3c7;
+        }
+        .original-text-title {
+            font-size: 1.6em;
+            color: #3498db;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .categorized-content h3 {
+            font-size: 1.3em;
+            color: #803c00; /* رنگ نارنجی برای زیرتیترها */
+            border-right: 4px solid #f39c12;
+            padding-right: 10px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .categorized-content h3 .icon {
+            font-size: 1.1em;
+            margin-left: 8px;
+            color: #f39c12;
+        }
+        .categorized-content ul {
+            list-style: none;
+            padding-right: 15px;
+        }
+        .categorized-content li {
+            position: relative;
+            padding-right: 20px;
+            margin-bottom: 10px;
+        }
+        .categorized-content li:before {
+            content: "•";
+            color: #2c3e50;
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-right: -1em;
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: right;
+        }
+        .data-table th {
+            background-color: #f2f2f2;
+            color: #34495e;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>تحلیل مصاحبه‌ها و سخنرانی‌های ریاست بنیاد مسکن</h1>
+        <p>خلاصه اجرایی مبتنی بر هوش مصنوعی (AI-Driven Executive Summary) - ۳ ماه اخیر</p>
+    </header>
+
+    <div class="section-title"> اهداف محوری و رسالت (4 قاعده اصلی) 🎯 </div>
+    <div class="grid-container">
+        <div class="card">
+            <div class="card-header"><span class="card-icon">🏠</span><div class="card-title">تأمین مسکن محرومان</div></div>
+            <div class="card-content">تبدیل این رسالت بنیاد به خروجی‌های ملموس (بازسازی، ساخت واحد و اعطای تسهیلات).</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="card-icon">🛣️</span><div class="card-title">شتاب در پروژه‌های روستایی</div></div>
+            <div class="card-content">شتاب در اجرای طرح هادی و آسفالت روستاها؛ اعلام کرد قم نخستین استان اجرای کامل خواهد بود و پیگیری افزایش سهمیه قیر.</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="card-icon">💪</span><div class="card-title">مقاوم‌سازی و نوسازی</div></div>
+            <div class="card-content">اشاره به اهداف عددی (مثلاً ۵۵٪ تا امروز و بودجه‌های مشخص) و برنامه نوسازی (وام ۴۰۰ میلیون برای روستاییان).</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="card-icon">🤝</span><div class="card-title">همکاری بین‌سازمانی و تامین منابع</div></div>
+            <div class="card-content">دیدارها با سازمان برنامه و بودجه، کمیته امداد، ستاد اجرایی و نمایندگان مجلس برای تأمین اعتبار و رفع موانع اداری.</div>
+        </div>
+    </div>
+    
+    <div class="section-title"> ابزارها و منابع کلیدی مورد نیاز (عملی و اولویت‌دار) 🛠️ </div>
+    <div class="grid-container">
+        <div class="card">
+            <div class="card-header"><span class="card-icon">💰</span><div class="card-title">پکیج مالی و اعتباری شفاف</div></div>
+            <div class="card-content">خط اعتباری مشخص برای «مسکن محرومان» (قرض‌الحسنه و تسهیلات کم‌بهره)؛ ادغام با بانک‌ها و تضمین پرداخت مرحله‌ای بر اساس پیشرفت پروژه.</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="card-icon">📊</span><div class="card-title">سامانه مرکزی مدیریت پروژه و شفافیت (Dashboard)</div></div>
+            <div class="card-content">رهگیری پیشرفت پروژه‌ها در استان‌ها، پیمانکاران، تامین مالی، زمان‌بندی و شاخص‌های کیفیت؛ خروجی‌های گرافیکی برای جلسات.</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="card-icon">🧑‍💻</span><div class="card-title">تیم استانی قوی و بازوی نظارتی میدانی</div></div>
+            <div class="card-content">مدیران استانی و بانک ماشین‌آلات/پیمانکاران محلی که اختیار تصمیم‌گیری موثر داشته باشند تا پروژه‌ها از «کاغذ» به «عمل» برسد.</div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="card-icon">📝</span><div class="card-title">پروتکل همکاری بین‌سازمانی</div></div>
+            <div class="card-content">فرمت تفاهم‌نامه‌ (MoU) با سازمان برنامه، کمیته امداد، ستاد اجرایی و... با KPI، جدول زمانی، و مکانیزم حل اختلاف.</div>
+        </div>
+    </div>
+    
+    <div class="section-title"> دغدغه‌ها / ریسک‌های کلیدی (عملیاتی) ⚠️ </div>
+    <div class="grid-container">
+        <div class="card risk-card">
+            <div class="card-header"><span class="card-icon">🚨</span><div class="card-title">تأمین پایدار منابع مالی</div></div>
+            <div class="card-content">ریسک کندی تخصیص‌ها یا پرداخت‌ها از طرف بانک‌ها/سازمان برنامه.</div>
+        </div>
+        <div class="card risk-card">
+            <div class="card-header"><span class="card-icon">🛑</span><div class="card-title">بیرون‌زدگی پروژه‌ها در فرایند اداری</div></div>
+            <div class="card-content">پروژه‌ها در پیچ‌وخم اداری متوقف شوند؛ استاندار و مدیران استانی بر میدانی شدن تأکید داشتند.</div>
+        </div>
+        <div class="card risk-card">
+            <div class="card-header"><span class="card-icon">📉</span><div class="card-title">کیفیت و نظارت فنی</div></div>
+            <div class="card-content">شتاب بدون نظارت فنی -> کیفیت پایین؛ خطر بازسازی‌های نیم‌تمام یا غیرمقاوم.</div>
+        </div>
+        <div class="card risk-card">
+            <div class="card-header"><span class="card-icon">📣</span><div class="card-title">تصورات عمومی / انتظارات رسانه‌ای</div></div>
+            <div class="card-content">اعلام آمار بزرگ (مثل ۵۵٪ مقاوم‌سازی) باید قابل ارزیابی و اثبات باشد تا موج انتقاد تولید نکند.</div>
+        </div>
+    </div>
+
+    <div class="section-title"> اولویت‌بندی پیشنهادی (چه کاری زودتر انجام شود) 🌟</div>
+    <div class="grid-container">
+        <div class="card priority-card">
+            <div class="card-header"><span class="card-icon">1️⃣</span><div class="card-title">راه‌اندازی سامانه مدیریت پروژه (PMS) و داشبورد شفاف</div></div>
+            <div class="card-content">اطلاعات لحظه‌ای از وضعیت استان‌ها، پروژه‌ها، اعتبارات و پیمانکاران. (اثر بزرگ، نیاز متوسط به سرمایه).</div>
+        </div>
+        <div class="card priority-card">
+            <div class="card-header"><span class="card-icon">2️⃣</span><div class="card-title">بستن تفاهم‌نامه‌های مالی اجرایی با بانک‌ها و سازمان برنامه</div></div>
+            <div class="card-content">تضمین تخصیص و پرداخت‌های مرحله‌ای.</div>
+        </div>
+        <div class="card priority-card">
+            <div class="card-header"><span class="card-icon">3️⃣</span><div class="card-title">راه‌اندازی واحد کنترل کیفیت میدانی و نمونه‌برداری پروژه‌ها</div></div>
+            <div class="card-content">نمونه‌گیری تصادفی از پروژه‌ها جهت تایید مقاومت و کیفیت.</div>
+        </div>
+        <div class="card priority-card">
+            <div class="card-header"><span class="card-icon">4️⃣</span><div class="card-title">اجرای پایلوت شتاب‌دهی در ۲-۳ استان الگو (مثلاً قم و قزوین)</div></div>
+            <div class="card-content">اجرای سریع طرح هادی و آسفالت با گزارش شفاف و انتشار نتایج.</div>
+        </div>
+    </div>
+    
+    <div class="section-title"> پیشنهادهای مشخص و عملیاتی برای هر هدف (خروجی ۳ ماهه) ⚙️</div>
+    <div class="grid-container">
+        <div class="card action-card">
+            <div class="card-header"><span class="card-icon">🏠</span><div class="card-title">تأمین مسکن محرومان</div></div>
+            <div class="action-detail">
+                <b>اقدام:</b> طراحی «پکیج تسهیلات مرحله‌ای» (فاز طراحی/ساخت/تحویل) با همکاری ۲ بانک و سازمان برنامه.<br>
+                <b>مسئول:</b> معاون پشتیبانی + مدیر مالی بنیاد + کمیته فنی در سازمان برنامه.<br>
+                <b>خروجی ۳ ماهه:</b> امضای ۱ تفاهم‌نامه بانکی و راه‌اندازی مکانیسم پرداخت مرحله‌ای.
+            </div>
+        </div>
+        <div class="card action-card">
+            <div class="card-header"><span class="card-icon">🛣️</span><div class="card-title">طرح هادی و آسفالت روستاها (شتاب استانی)</div></div>
+            <div class="action-detail">
+                <b>اقدام:</b> انتخاب ۲ استان پایلوت، تخصیص قیر و منابع، و تعیین پیمانکاران واجد شرایط؛ گزارش تصویری و جدول زمان‌بندی.<br>
+                <b>مسئول:</b> دفاتر استانی بنیاد + معاون عمران.<br>
+                <b>خروجی ۳ ماهه:</b> شروع آسفالت در حداقل ۳۰٪ از معابر برنامه‌ریزی‌شده در هر استان.
+            </div>
+        </div>
+        <div class="card action-card">
+            <div class="card-header"><span class="card-icon">💪</span><div class="card-title">مقاوم‌سازی و نوسازی روستایی</div></div>
+            <div class="action-detail">
+                <b>اقدام:</b> تعیین اولویت‌ها (بر مبنای آسیب‌پذیری و نیاز) + ارائه وام ۴۰۰ میلیون و کنترل کیفیت ساخت.<br>
+                <b>مسئول:</b> معاون بازسازی و مسکن روستایی + تیم کنترل کیفیت.<br>
+                <b>خروجی ۳ ماهه:</b> لیست اولویت‌دار ۵۰ هزار خانوار واجد شرایط + آغاز پرداخت مرحله‌ای به ۱۰٪ آن‌ها.
+            </div>
+        </div>
+        <div class="card action-card">
+            <div class="card-header"><span class="card-icon">🤝</span><div class="card-title">ارتقای همکاری بین‌سازمانی</div></div>
+            <div class="action-detail">
+                <b>اقدام:</b> تهیه قالب MoU با KPI و برنامه زمانی برای ۴ نهاد کلیدی.<br>
+                <b>مسئول:</b> دفتر ریاست و معاون برنامه‌ریزی.<br>
+                <b>خروجی ۳ ماهه:</b> ۲ MoU امضا شده و شروع اجرای مشترک حداقل ۱ پروژه پایلوت.
+            </div>
+        </div>
+    </div>
+    
+    <div class="original-text-section">
+        <div class="original-text-title">متن کامل و تفکیک‌شده تحلیل (بدون دخل و تصرف در محتوا) 📜</div>
+        <div class="categorized-content">
+        
+            <h3><span class="icon">✅</span> خلاصه‌ اجرایی رئیس بنیاد مسکن در حدود سه ماه اخیر</h3>
+            <ul>
+                <li>عملاً چهار هدف محوری را برجسته کرده: **(1) تمرکز بر «تأمین مسکن اقشار کم‌درآمد / محروم»**، **(2) شتاب دادن به پروژه‌های روستایی (طرح هادی و آسفالت روستاها)**، **(3) مقاوم‌سازی و نوسازی واحدهای روستایی** و **(4) تسهیل همکاری با نهادها و شبکه‌های اجرایی** (سازمان برنامه و بودجه، کمیته امداد، ستاد اجرایی، کمیسیون‌های مجلس).</li>
+                <li>گزارش شما حاوی بازدیدها، نشست‌ها و تفاهم‌نامه‌ها و پوشش رسانه‌ای متعددی است که همه حول این چهار قاعده می‌چرخند.</li>
+            </ul>
+
+            <h3><span class="icon">🎯</span> اهدافی که دنبال می‌شود (خلاصه واضح)</h3>
+            <ul>
+                <li>**تأمین مسکن محرومان** — تبدیل این رسالت بنیاد به خروجی‌های ملموس (بازسازی، ساخت واحد و اعطای تسهیلات).</li>
+                <li>**شتاب در اجرای طرح هادی و آسفالت روستاها** — اعلام کرد قم نخستین استان اجرای کامل خواهد بود و پیگیری افزایش سهمیه قیر.</li>
+                <li>**مقاوم‌سازی واحدهای روستایی** — اشاره به اهداف عددی (مثلاً ۵۵٪ تا امروز و بودجه‌های مشخص) و برنامه نوسازی (وام ۴۰۰ میلیون برای روستاییان).</li>
+                <li>**همکاری بین‌سازمانی و تامین منابع** — دیدارها با سازمان برنامه و بودجه، کمیته امداد، ستاد اجرایی و نمایندگان مجلس برای تأمین اعتبار و رفع موانع اداری.</li>
+                <li>**پروژه‌‌های بزرگ شهری و نهضت ملی مسکن** — مشارکت در نهضت ملی و ارائه آمار واحدهای در دست ساخت.</li>
+            </ul>
+
+            <h3><span class="icon">🔧</span> ابزارها و منابع کلیدی مورد نیاز (عملی و اولویت‌دار)</h3>
+            <ul>
+                <li>**پکیج مالی و اعتباری شفاف** خط اعتباری مشخص برای «مسکن محرومان» (قرض‌الحسنه و تسهیلات کم‌بهره)؛ ادغام با بانک‌ها و تضمین پرداخت مرحله‌ای بر اساس پیشرفت پروژه.</li>
+                <li>**سامانه مرکزی مدیریت پروژه و شفافیت (Dashboard مدیریتی)** رهگیری پیشرفت پروژه‌ها در استان‌ها، پیمانکاران، تامین مالی، زمان‌بندی و شاخص‌های کیفیت؛ خروجی‌های گرافیکی برای جلسات با وزیر و سازمان برنامه. (مناسب برای روابط عمومی و پاسخ به مجلس).</li>
+                <li>**تیم استانی قوی و بازوی نظارتی میدانی** مدیران استانی و بانک ماشین‌آلات/پیمانکاران محلی که اختیار تصمیم‌گیری محدود اما موثر داشته باشند تا پروژه‌ها از «کاغذ» به «عمل» برسد.</li>
+                <li>**پروتکل همکاری بین‌سازمانی** فرمت تفاهم‌نامه‌ (MoU) با سازمان برنامه، کمیته امداد، ستاد اجرایی و سازمان ملی زمین و مسکن با KPI، جدول زمانی، و مکانیزم حل اختلاف.</li>
+                <li>**کمپین اطلاع‌رسانی هدفمند** به روابط عمومی جهت اعلام خروجی‌ها، اما با تاکید بر «تبیین عملکرد سازمان» و نه پرسونالیزه کردن. (این خواست خود رئیس بنیاد هم بوده).</li>
+            </ul>
+            
+            <h3><span class="icon">⚠️</span> دغدغه‌ها / ریسک‌ها (مخفف، عملیاتی)</h3>
+            <ul>
+                <li>**تأمین پایدار منابع مالی** (ریسک کندی تخصیص‌ها یا پرداخت‌ها از طرف بانک‌ها/سازمان برنامه).</li>
+                <li>**بیرون‌زدگی پروژه‌ها در فرایند اداری** (پروژه‌ها در پیچ‌وخم اداری متوقف شوند؛ استاندار و مدیران استانی بر میدانی شدن تأکید داشتند).</li>
+                <li>**کیفیت و نظارت فنی** (شتاب بدون نظارت فنی -> کیفیت پایین؛ خطر بازسازی‌های نیم‌تمام یا غیرمقاوم).</li>
+                <li>**تصورات عمومی / انتظارات رسانه‌ای** (اعلام آمار بزرگ مثل ۲۹۴٬۵۰۰ واحد یا ۵۵٪ مقاوم‌سازی باید قابل ارزیابی و اثبات باشد تا موج انتقاد تولید نکند).</li>
+            </ul>
+
+            <h3><span class="icon">🚀</span> اولویت‌بندی پیشنهادی (چه کاری زودتر انجام شود)</h3>
+            <ul>
+                <li>**راه‌اندازی سامانه مدیریت پروژه (PMS) و داشبورد شفاف** — اطلاعات لحظه‌ای از وضعیت استان‌ها، پروژه‌ها، اعتبارات و پیمانکاران. (اثر بزرگ، نیاز متوسط به سرمایه).</li>
+                <li>**بستن تفاهم‌نامه‌های مالی اجرایی با بانک‌ها و سازمان برنامه** — تضمین تخصیص و پرداخت‌های مرحله‌ای.</li>
+                <li>**راه‌اندازی واحد کنترل کیفیت میدانی و نمونه‌برداری پروژه‌ها** — نمونه‌گیری تصادفی از پروژه‌ها جهت تایید مقاومت و کیفیت.</li>
+                <li>**اجرای پایلوت شتاب‌دهی در ۲-۳ استان الگو (مثلاً قم و قزوین)** — اجرای سریع طرح هادی و آسفالت با گزارش شفاف و انتشار نتایج.</li>
+                <li>**ارتقای روابط عمومی به سمت «تبیین عملکرد سازمانی»** — گزارش‌های ماهانه‌ای که خروجی ملموس پروژه‌ها را نشان دهد (تصویر + KPI).</li>
+            </ul>
+
+            <h3><span class="icon">📈</span> پیشنهادهای مشخص و عملیاتی برای هر هدف (برای هر مورد: شرحِ اقدام — مسئولِ اجرا — خروجی قابل اندازه‌گیری در ۳ ماه)</h3>
+            
+            <h4>تأمین مسکن محرومان</h4>
+            <ul>
+                <li>**اقدام:** طراحی «پکیج تسهیلات مرحله‌ای» (فاز طراحی/ساخت/تحویل) با همکاری ۲ بانک و سازمان برنامه.</li>
+                <li>**مسئول:** معاون پشتیبانی + مدیر مالی بنیاد + کمیته فنی در سازمان برنامه.</li>
+                <li>**خروجی ۳ ماهه:** امضای ۱ تفاهم‌نامه بانکی و راه‌اندازی مکانیسم پرداخت مرحله‌ای.</li>
+            </ul>
+
+            <h4>طرح هادی و آسفالت روستاها (شتاب استانی)</h4>
+            <ul>
+                <li>**اقدام:** انتخاب ۲ استان پایلوت، تخصیص قیر و منابع، و تعیین پیمانکاران واجد شرایط؛ گزارش تصویری و جدول زمان‌بندی.</li>
+                <li>**مسئول:** دفاتر استانی بنیاد + معاون عمران.</li>
+                <li>**خروجی ۳ ماهه:** شروع آسفالت در حداقل ۳۰٪ از معابر برنامه‌ریزی‌شده در هر استان.</li>
+            </ul>
+
+            <h4>مقاوم‌سازی و نوسازی روستایی</h4>
+            <ul>
+                <li>**اقدام:** تعیین اولویت‌ها (بر مبنای آسیب‌پذیری و نیاز) + ارائه وام ۴۰۰ میلیون و کنترل کیفیت ساخت.</li>
+                <li>**مسئول:** معاون بازسازی و مسکن روستایی + تیم کنترل کیفیت.</li>
+                <li>**خروجی ۳ ماهه:** لیست اولویت‌دار ۵۰ هزار خانوار واجد شرایط + آغاز پرداخت مرحله‌ای به ۱۰٪ آن‌ها.</li>
+            </ul>
+
+            <h4>ارتقای همکاری بین‌سازمانی</h4>
+            <ul>
+                <li>**اقدام:** تهیه قالب MoU با KPI و برنامه زمانی برای ۴ نهاد کلیدی (سازمان برنامه، کمیته امداد، ستاد اجرایی، سازمان ملی زمین).</li>
+                <li>**مسئول:** دفتر ریاست و معاون برنامه‌ریزی.</li>
+                <li>**خروجی ۳ ماهه:** ۲ MoU امضا شده و شروع اجرای مشترک حداقل ۱ پروژه پایلوت.</li>
+            </ul>
+
+            <h4>روابط عمومیِ شفاف و مستندسازی</h4>
+            <ul>
+                <li>**اقدام:** انتشار گزارش ماهانه (PDF + صفحات وب) شامل KPI، تصاویر سایت، و جدول پیشرفت؛ تاکید بر عملکرد سازمانی نه افراد.</li>
+                <li>**مسئول:** مدیرکل روابط عمومی.</li>
+                <li>**خروجی ۳ ماهه:** اولین گزارش ماهانه منتشر و ارزیابی بازخورد رسانه‌ای.</li>
+            </ul>
+
+            <h3><span class="icon">🚫</span> نکات اجرایی «ضدخطا» (چیزی که اگر انجام نشود، برنامه شکست می‌خورد)</h3>
+            <ul>
+                <li>پیوند دادن هر پرداخت به «گزارش پیشرفت فیزیکی و کنترل کیفیت» (نه صرفاً رسیدهای اداری).</li>
+                <li>تفویض اختیار محدود به مدیران استانی با مسئولیت حسابرسی دوره‌ای.</li>
+                <li>مدیریت انتظارات رسانه‌ای با اعداد مستند و تاریخ‌های تحویل واقع‌بینانه.</li>
+            </ul>
+            
+            <h3><span class="icon">📰</span> نمایش دسته‌بندی مطالب خبری (چگونه من تجمیع کردم)</h3>
+            <ul>
+                <li>منابع خبری و متن‌های داخلیِ بنیاد و پوشش رسانه‌ای را جمع کردم و خبرهای تکراری را یکی کردم (برای مثال پوشش سفر به قم در ایرنا، ایسنا، فارس، تسنیم و خبرگزاری‌های محلی هم‌پوشانی داشت — همه را در یک ورودی تجمیع کردم).</li>
+                <li>فایل شما شامل گزارش‌های بازدید استانی (قم، قزوین، مشهد و کرمانشاه)، نشست‌های با نمایندگان مجلس و دیدار با نهادهای حمایتی و اجرایی؛ همه‌ی این‌ها را به موضوعات: **«مسکن محرومان»**، **«طرح هادی/آسفالت»**، **«مقاوم‌سازی/نوسازی»**، **«نهضت ملی»**، **«تفاهمات بین‌سازمانی»** تقسیم کردم.</li>
+            </ul>
+            
+            <h3><span class="icon">🔑</span> کلیدواژه‌های کاربردی (انتخاب‌شده از محتوای شما) و فراوانی تقریبی</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>کلیدواژه (ترکیب)</th>
+                        <th>تعداد تکرار تقریبی در تجمیع متن</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>مسکن</td><td>230 (شامل همه عبارات مرتبط)</td></tr>
+                    <tr><td>بنیاد (بنیاد مسکن)</td><td>183</td></tr>
+                    <tr><td>مسکن محرومان</td><td>17</td></tr>
+                    <tr><td>استان / سفر استانی</td><td>76 (ذکر «استان» و گزارش‌های استانی)</td></tr>
+                    <tr><td>روابط عمومی</td><td>48</td></tr>
+                    <tr><td>طرح هادی</td><td>8</td></tr>
+                    <tr><td>پروژه / پروژه‌های عمرانی</td><td>~23</td></tr>
+                    <tr><td>مقاوم‌سازی</td><td>2–7 (ذکر «مقاوم» و «۵۵ درصد»)</td></tr>
+                    <tr><td>نوسازی / بازسازی</td><td>4</td></tr>
+                    <tr><td>وام ۴۰۰ میلیون (تسهیلات روستایی)</td><td>3</td></tr>
+                    <tr><td>نهضت ملی مسکن</td><td>4</td></tr>
+                    <tr><td>تفاهم / تفاهم‌نامه</td><td>5</td></tr>
+                    <tr><td>کمیته امداد</td><td>5</td></tr>
+                    <tr><td>سازمان برنامه و بودجه</td><td>2</td></tr>
+                    <tr><td>ستاد اجرایی</td><td>2</td></tr>
+                    <tr><td>قیر رایگان</td><td>1 (ذکر افزایش سهمیه قیر)</td></tr>
+                </tbody>
+            </table>
+            <p style="font-size: 0.9em; color: #7f8c8d; margin-top: 10px;">**توضیح:** آمارها از متن تجمیعی شما استخراج شده‌اند و عددهای بالا برای نشان دادن وزن نسبی هر موضوع در مجموعه اخبار شماست. در گزارش نهایی که برای ارائه می‌خواهید می‌توانم این جدول را به صورت نمودار هم تبدیل کنم.</p>
+            
+            
+            <h3><span class="icon">💡</span> جمع‌بندی کوتاه و توصیه نهایی (قابل‌عرضه به ریاست بنیاد)</h3>
+            <p>شما در سه ماه اول پیام واضحی فرستادید: **«مسکن محرومان و شتاب در طرح‌های روستایی»** محور کار است. برای تبدیل این شعار به نتیجه ملموس، دو کار حیاتی هستند: **(1)** قفل‌گشایی منابع مالی با مکانیسم پرداخت مرحله‌ای و **(2)** راه‌اندازی سامانه مدیریتی و کنترل کیفیت که هر پرداخت را به یک گزارش فنی وصل کند. بدون این دو، اعطای وام یا شروع پروژه‌ها ممکن است به گزارش‌های PR تبدیل شود نه به خانه‌های قابل سکونت.</p>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
