@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>اینفوگرافی مدیریت بنیاد مسکن</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#f4f7fb;
+            --card:#ffffff;
+            --shadow:0 10px 26px rgba(0,0,0,0.07);
+            --radius:20px;
+            --pad:20px;
+            --accent1:#0ea5a4;
+            --accent2:#fb923c;
+            --accent3:#3b82f6;
+            --accent4:#8b5cf6;
+            --accent5:#10b981;
+        }
+
+        body{
+            margin:0;
+            background:var(--bg);
+            font-family:'Vazirmatn', sans-serif;
+            color:#1e293b;
+            padding-bottom:60px;
+        }
+
+        /* Banner */
+        .banner{
+            width:100%;
+            height:120px;
+            border-radius:0 0 22px 22px;
+            background:linear-gradient(135deg,#0ea5a4 0%, #8b5cf6 100%);
+            box-shadow:0 12px 30px rgba(0,0,0,0.18);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-size:26px;
+            font-weight:700;
+            letter-spacing:1px;
+            margin-bottom:25px;
+        }
+
+        .wrap{max-width:1150px;margin:0 auto;padding:20px;}
+
+        header{display:flex;align-items:center;gap:20px;margin-bottom:25px;}
+
+        .logo{
+            width:800px;height:80px;border-radius:18px;
+            background:linear-gradient(135deg,var(--accent1),var(--accent4));
+            display:flex;align-items:center;justify-content:center;
+            color:white;font-size:22px;font-weight:800;
+            box-shadow:0 10px 20px rgba(0,0,0,0.12);
+        }
+
+        h1{margin:0;font-size:22px;font-weight:700;}
+        .lead{margin:4px 0 0;color:#64748b;font-size:14px;}
+
+        /* GRID */
+        .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+        @media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr);} }
+        @media(max-width:650px){.grid{grid-template-columns:1fr;} }
+
+        /* CARD */
+        .card{
+            background:var(--card);
+            padding:var(--pad);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            position:relative;overflow:hidden;
+        }
+
+        .ribbon{position:absolute;top:0;left:0;width:100%;height:8px;}
+        .accent-1 .ribbon{background:linear-gradient(90deg,var(--accent1),#34d399)}
+        .accent-2 .ribbon{background:linear-gradient(90deg,var(--accent2),#f87171)}
+        .accent-3 .ribbon{background:linear-gradient(90deg,var(--accent3),#60a5fa)}
+        .accent-4 .ribbon{background:linear-gradient(90deg,var(--accent4),#c084fc)}
+        .accent-5 .ribbon{background:linear-gradient(90deg,var(--accent5),#6ee7b7)}
+
+        .title-with-icon{
+            display:flex;align-items:center;gap:12px;
+            font-size:16px;font-weight:700;margin-bottom:10px;color:#0f172a;
+        }
+
+        .icon{
+            width:40px;height:40px;border-radius:12px;
+            display:flex;align-items:center;justify-content:center;
+            background:#f1f5f9;font-size:20px;
+            box-shadow:inset 0 0 4px rgba(0,0,0,0.12);
+        }
+
+        /* Bullet list + mini progress */
+        .list{margin:10px 0 0;padding:0;list-style:none;}
+        .list li{
+            padding:8px 0;display:flex;flex-direction:column;
+            gap:6px;border-bottom:1px dashed #e2e8f0;font-size:14px;
+        }
+        .bullet{
+            display:flex;align-items:center;gap:8px;
+        }
+        .bullet:before{
+            content:"•";color:var(--accent3);font-size:22px;margin-left:4px;
+        }
+
+        /* MINI progress */
+        .mini-bar{
+            height:6px;background:#e2e8f0;border-radius:10px;overflow:hidden;
+        }
+        .mini-fill{
+            height:100%;background:var(--miniColor);
+            width:var(--mw); /* مقدار پیشرفت بدون انیمیشن اعمال شد */
+            border-radius:10px;
+        }
+
+        /* KEYWORD PROGRESS (BIG) */
+        .krow{margin:14px 0;}
+        .klabel{font-size:13px;color:#334155;margin-bottom:4px;}
+        .kbar{background:#e2e8f0;height:12px;border-radius:12px;overflow:hidden;}
+        .kfill{
+            height:100%;border-radius:12px;
+            background:linear-gradient(90deg,#3b82f6,#60a5fa);
+            width:0%;
+            animation:grow 2s ease forwards;
+        }
+
+        /* Image Gallery Styles */
+        .image-gallery{
+            display:grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap:10px;
+            margin-top:15px;
+        }
+        .image-gallery img{
+            width:100%;
+            height:auto;
+            aspect-ratio:4/3; 
+            object-fit:cover;
+            border-radius:8px; 
+            transition:transform 0.3s ease;
+        }
+        .image-gallery img:hover{
+            transform:scale(1.03);
+        }
+        /* End of New Styles */
+
+        /* Animation */
+        @keyframes grow{from{width:0}to{width:var(--w)} }
+
+        footer{margin-top:40px;font-size:13px;color:#475569;line-height:1.8;}
+        
+        /* FIX: متغیرهای رنگی برای Progress Barها کاملاً بازنویسی شدند */
+        .accent-1{--miniColor:linear-gradient(90deg,#0ea5a4,#34d399);}
+        .accent-2{--miniColor:linear-gradient(90deg,#fb923c,#f87171);}
+        .accent-3{--miniColor:linear-gradient(90deg,#3b82f6,#60a5fa);}
+        .accent-4{--miniColor:linear-gradient(90deg,#8b5cf6,#c084fc);}
+        .accent-5{--miniColor:linear-gradient(90deg,#10b981,#6ee7b7);}
+    </style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+    <div class="logo">تحلیل مصاحبه ها و سخنرانی‌های ریاست بنیاد مسکن - به کمک هوش مصنوعی (AI)</div>
+    <div>
+        <h1>اینفوگرافی مدیریتی بنیاد مسکن</h1>
+        <p class="lead">به کمک هوش مصنوعی - (AI)</p>
+    </div>
+</header>
+
+<div class="grid">
+
+    <div class="card accent-1" style="grid-column:1 / span 1;">
+        <div class="ribbon"></div>
+        <h3 class="title-with-icon"><span class="icon">🏛️</span>محورهای اصلی فعالیت</h3>
+        <ul class="list">
+            <li>
+                <div class="bullet">مسکن محرومان</div>
+                <div class="mini-bar"><div class="mini-fill" style="--mw:85%"></div></div>
+            </li>
+            <li>
+                <div class="bullet">طرح هادی و آسفالت</div>
+                <div class="mini-bar"><div class="mini-fill" style="--mw:70%"></div></div>
+            </li>
+            <li>
+                <div class="bullet">مقاوم‌سازی و نوسازی</div>
+                <div class="mini-bar"><div class="mini-fill" style="--mw:55%"></div></div>
+            </li>
+            <li>
+                <div class="bullet">همکاری بین‌سازمانی</div>
+                <div class="mini-bar"><div class="mini-fill" style="--mw:60%"></div></div>
+            </li>
+            <li>
+                <div class="bullet">نهضت ملی مسکن (محور راهبردی دولت)</div>
+                <div class="mini-bar"><div class="mini-fill" style="--mw:45%"></div></div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card accent-5" style="grid-column:2 / span 2; padding:15px; border-radius:var(--radius); border:2px solid #e0f2f1; height:auto; display:flex; flex-direction:column;">
+        <div class="ribbon"></div>
+        <h3 class="title-with-icon"><span class="icon">📸</span>تصاویر بازدیدهای میدانی</h3>
+        <div class="image-gallery">
+            <img src="https://bonyadmaskan.github.io/Temp/kh-1.jpg" alt="بازدید میدانی 1">
+            <img src="https://bonyadmaskan.github.io/Temp/kh-2.jpg" alt="بازدید میدانی 2">
+            <img src="https://bonyadmaskan.github.io/Temp/kh-3.jpg" alt="بازدید میدانی 3">
+            <img src="https://bonyadmaskan.github.io/Temp/kh-4.jpg" alt="بازدید میدانی 4">
+            <img src="https://bonyadmaskan.github.io/Temp/kh-5.jpg" alt="بازدید میدانی 5">
+            <img src="https://bonyadmaskan.github.io/Temp/kh-6.jpg" alt="بازدید میدانی 6">
+        </div>
+    </div>
+    <div class="card accent-4" style="grid-column:1 / span 1;">
+        <div class="ribbon"></div>
+        <h3 class="title-with-icon"><span class="icon">🛠️</span>ابزارها و نیازها</h3>
+        <ul class="list">
+            <li><div class="bullet">داشبورد مدیریت پروژه</div><div class="mini-bar"><div class="mini-fill" style="--mw:95%"></div></div></li>
+            <li><div class="bullet">پکیج اعتباری</div><div class="mini-bar"><div class="mini-fill" style="--mw:80%"></div></div></li>
+            <li><div class="bullet">کنترل کیفیت میدانی</div><div class="mini-bar"><div class="mini-fill" style="--mw:70%"></div></div></li>
+            <li><div class="bullet">تفاهم‌نامه KPIدار</div><div class="mini-bar"><div class="mini-fill" style="--mw:60%"></div></div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-2" style="grid-column:2 / span 1;">
+        <div class="ribbon"></div>
+        <h3 class="title-with-icon"><span class="icon">🎯</span>اهداف کلیدی</h3>
+        <ul class="list">
+            <li><div class="bullet">تحویل واحدهای قابل سکونت</div><div class="mini-bar"><div class="mini-fill" style="--mw:90%"></div></div></li>
+            <li><div class="bullet">تسریع پروژه‌های روستایی</div><div class="mini-bar"><div class="mini-fill" style="--mw:75%"></div></div></li>
+            <li><div class="bullet">افزایش مقاوم‌سازی</div><div class="mini-bar"><div class="mini-fill" style="--mw:60%"></div></div></li>
+            <li><div class="bullet">تثبیت منابع مالی</div><div class="mini-bar"><div class="mini-fill" style="--mw:80%"></div></div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-3" style="grid-column:3 / span 1;">
+        <div class="ribbon"></div>
+        <h3 class="title-with-icon"><span class="icon">🛰️</span>اقدامات برجسته</h3>
+        <ul class="list">
+            <li><div class="bullet">سفرهای استانی</div><div class="mini-bar"><div class="mini-fill" style="--mw:85%"></div></div></li>
+            <li><div class="bullet">تفاهم با نهادهای حمایتی</div><div class="mini-bar"><div class="mini-fill" style="--mw:65%"></div></div></li>
+            <li><div class="bullet">پیگیری قیر و طرح هادی</div><div class="mini-bar"><div class="mini-fill" style="--mw:72%"></div></div></li>
+            <li><div class="bullet">تسهیلات ۴۰۰ میلیونی</div><div class="mini-bar"><div class="mini-fill" style="--mw:55%"></div></div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-5" style="grid-column:1 / span 1; border-radius:20px; border:2px solid #e0f2f1;">
+        <div class="ribbon"></div>
+        <h3 class="title-with-icon"><span class="icon">📅</span>اولویت‌های ۹۰ روزه</h3>
+        <ul class="list">
+            <li><div class="bullet">پایلوت سه‌استانه</div><div class="mini-bar"><div class="mini-fill" style="--mw:88%"></div></div></li>
+            <li><div class="bullet">تفاهم بانکی</div><div class="mini-bar"><div class="mini-fill" style="--mw:70%"></div></div></li>
+            <li><div class="bullet">موج مقاوم‌سازی</div><div class="mini-bar"><div class="mini-fill" style="--mw:65%"></div></div></li>
+            <li><div class="bullet">گزارش ماهانه</div><div class="mini-bar"><div class="mini-fill" style="--mw:75%"></div></div></li>
+        </ul>
+    </div>
+
+    <div class="card" style="grid-column:2 / span 2; border-radius:20px; border:2px solid #e2e8f0;">
+        <h3 class="title-with-icon"><span class="icon">📊</span>کلیدواژه‌ها + شدت تکرار</h3>
+
+        <div class="krow"><div class="klabel">مسکن (259)</div><div class="kbar"><div class="kfill" style="--w:100%;background:linear-gradient(90deg,#ef4444,#f87171)"></div></div></div>
+        <div class="krow"><div class="klabel">نهضت ملی مسکن (133)</div><div class="kbar"><div class="kfill" style="--w:51%;background:linear-gradient(90deg,#f97316,#fdba74)"></div></div></div>
+        <div class="krow"><div class="klabel">بنیاد مسکن (170)</div><div class="kbar"><div class="kfill" style="--w:66%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></div></div></div>
+        <div class="krow"><div class="klabel">پروژه (120)</div><div class="kbar"><div class="kfill" style="--w:46%;background:linear-gradient(90deg,#10b981,#6ee7b7)"></div></div></div>
+        <div class="krow"><div class="klabel">طرح هادی (41)</div><div class="kbar"><div class="kfill" style="--w:16%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div></div>
+        <div class="krow"><div class="klabel">قیر (18)</div><div class="kbar"><div class="kfill" style="--w:7%;background:linear-gradient(90deg,#8b5cf6,#c084fc)"></div></div></div>
+        <div class="krow"><div class="klabel">روستا (36)</div><div class="kbar"><div class="kfill" style="--w:14%;background:linear-gradient(90deg,#ec4899,#f9a8d4)"></div></div></div>
+        <div class="krow"><div class="klabel">مسکن محرومان (17)</div><div class="kbar"><div class="kfill" style="--w:7%;background:linear-gradient(90deg,#6366f1,#818cf8)"></div></div></div>
+
+    </div>
+
+</div>
+
+<div style="margin-top:45px; display:grid; grid-template-columns:repeat(2,1fr); gap:22px;">
+
+    <div class="card accent-1" style="border-radius:22px; border:2px dashed #b2f5ea;">
+        <h3 class="title-with-icon"><span class="icon">⚡</span>خلاصه اجرایی</h3>
+        <p style="font-size:14px; line-height:1.9; color:#475569;">
+            تمرکز مدیریت جدید بر سرعت‌بخشی پروژه‌ها، تحویل واقعی، کنترل کیفیت و ایجاد هماهنگی بین‌بخشی است. تحلیل کلیدواژه‌ها نشان می‌دهد محور اصلی کار: مسکن، پروژه، روستا و طرح هادی است.
+        </p>
+    </div>
+
+    <div class="card accent-2" style="border-radius:22px; border:2px dashed #fed7aa;">
+        <h3 class="title-with-icon"><span class="icon">🎯</span>اهداف کلیدی</h3>
+        <ul class="list">
+            <li><div class="bullet">تحویل سریع واحدهای قابل سکونت</div></li>
+            <li><div class="bullet">شتاب‌دهی پروژه‌های روستایی</div></li>
+            <li><div class="bullet">تقویت مقاوم‌سازی و نوسازی</div></li>
+            <li><div class="bullet">تسهیل‌گری مالی و اعتباری</div></li>
+            <li><div class="bullet">هماهنگی بین دستگاهی</div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-3" style="border-radius:22px; border:2px dashed #bfdbfe;">
+        <h3 class="title-with-icon"><span class="icon">⚠️</span>دغدغه‌ها / ریسک‌ها</h3>
+        <ul class="list">
+            <li><div class="bullet">کمبود منابع مالی پایدار</div></li>
+            <li><div class="bullet">کندی اجرای پروژه در برخی استان‌ها</div></li>
+            <li><div class="bullet">کیفیت پایین در بعضی عملیات میدانی</div></li>
+            <li><div class="bullet">عدم هماهنگی کامل بین سازمان‌ها</div></li>
+            <li><div class="bullet">فقدان Dashboard متمرکز</div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-4" style="border-radius:22px; border:2px dashed #ddd6fe;">
+        <h3 class="title-with-icon"><span class="icon">📌</span>اولویت‌بندی پیشنهادی</h3>
+        <ul class="list">
+            <li><div class="bullet">۱. تحویل سریع واحدهای نیمه‌تمام</div></li>
+            <li><div class="bullet">۲. ساخت Dashboard هوشمند</div></li>
+            <li><div class="bullet">۳. کنترل کیفیت و KPI میدانی</div></li>
+            <li><div class="bullet">۴. حل چالش مالی با بانک‌ها</div></li>
+            <li><div class="bullet">۵. پاک‌سازی آمار روستایی</div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-5" style="border-radius:22px; border:2px dashed #bbf7d0;">
+        <h3 class="title-with-icon"><span class="icon">🧩</span>پیشنهادهای عملیاتی</h3>
+        <ul class="list">
+            <li><div class="bullet">اتاق فرمان هفتگی برای تحویل واحدها</div></li>
+            <li><div class="bullet">قراردادهای نتیجه‌محور مقاوم‌سازی</div></li>
+            <li><div class="bullet">اولویت‌بندی ۱۰۰ روستای بحرانی</div></li>
+            <li><div class="bullet">تفاهم‌نامه ۶ ماهه KPI دار با بانک‌ها</div></li>
+            <li><div class="bullet">تیم مشترک بازرسی ضربتی</div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-1" style="border-radius:22px; border:2px dashed #b2f5ea;">
+        <h3 class="title-with-icon"><span class="icon">🛡️</span>نکات ضدخطا (Critical)</h3>
+        <ul class="list">
+            <li><div class="bullet">نبود Dashboard واحد → گزارش‌ها ناهماهنگ می‌شود</div></li>
+            <li><div class="bullet">عدم کنترل کیفیت → افزایش نارضایتی مردمی</div></li>
+            <li><div class="bullet">عدم هماهنگی → قفل شدن پروژه‌ها</div></li>
+        </ul>
+    </div>
+
+    <div class="card accent-2" style="border-radius:22px; border:2px dashed #fed7aa; grid-column:1 / -1;">
+        <h3 class="title-with-icon"><span class="icon">🗂️</span>روش تجمیع اخبار</h3>
+        <p style="font-size:14px; line-height:1.9; color:#475569;">
+            تمامی لینک‌ها و پست‌های دریافتی بررسی شد؛ موارد تکراری حذف و اخبار مشابه ادغام شدند. کلیدواژه‌ها با شمارش ماشینی استخراج و دسته‌بندی بر اساس مصاحبه‌ها، بازدیدهای استانی، گزارش‌های رسمی و خبرگزاری‌ها انجام شد.
+        </p>
+    </div>
+
+</div>
+
+<footer>
+    <h3>منابع خبری</h3>
+    <p>
+        اخبار تجمیعی از خبرگزاری‌های رسمی شامل: ایرنا، ایسنا، فارس، تسنیم، صداوسیما، پورتال بنیاد مسکن استان‌ها، شبکه‌های اجتماعی رسمی و گزارش‌های شما.
+    </p>
+</footer>
+
+</div>
+</body>
+</html>
