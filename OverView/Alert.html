@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>داشبورد اضطراری ریاست بنیاد مسکن</title>
+
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-Variable-font-face.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f0f4f8; --card: #ffffff; --text: #0f172a; --muted: #64748b;
+      --primary: #1e40af; --accent: #b45309; --success: #10b981;
+      --warning: #f59e0b; --danger: #e11d48; --dark-navy: #020617;
+    }
+    * { box-sizing: border-box; outline: none; }
+    body {
+      margin: 0; padding: 20px; font-family: "Vazirmatn", sans-serif;
+      background: var(--bg); color: var(--text); direction: rtl;
+    }
+
+    /* Layout */
+    .container { max-width: 1700px; margin: 0 auto; }
+    .grid-main { display: grid; grid-template-columns: 350px 1fr 380px; gap: 20px; }
+
+    /* Header */
+    .main-header {
+      background: var(--dark-navy); color: white; padding: 20px 30px;
+      border-radius: 15px; margin-bottom: 20px; display: flex;
+      justify-content: space-between; align-items: center; border-bottom: 5px solid var(--accent);
+    }
+
+    /* Cards */
+    .card { background: var(--card); border-radius: 12px; padding: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;  }
+    .card-h { font-weight: 900; font-size: 1.1rem; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+
+    /* Gauges */
+    .top-gauges { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 20px; }
+    .gauge-item { background: white; border-radius: 12px; padding: 15px; text-align: center; border-top: 4px solid var(--primary); }
+    .gauge-canvas { width: 100% !important;  }
+    .gauge-val { font-size: 1.5rem; font-weight: 900; margin-top: -82px; }
+    .gauge-target { font-size: 0.75rem; color: var(--muted); margin-top: 5px; font-weight: bold; }
+
+    /* Alerts */
+    .alert-scroll { max-height: 850px; overflow-y: auto; padding-left: 5px; }
+    .alert-card {
+      padding: 15px; border-radius: 10px; border-right: 6px solid var(--danger);
+      background: #fff5f5; margin-bottom: 12px; border: 1px solid #fee2e2;
+    }
+    .alert-card.warning { border-right-color: var(--warning); background: #fffbeb; border-color: #fef3c7; }
+    .alert-card.info { border-right-color: var(--primary); background: #eff6ff; border-color: #dbeafe; }
+    .alert-title { display: flex; justify-content: space-between; font-weight: 900; font-size: 0.95rem; margin-bottom: 8px; }
+    .alert-desc { font-size: 0.85rem; line-height: 1.6; color: #334155; }
+    .alert-footer { margin-top: 10px; display: flex; gap: 10px; }
+    .badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; background: #0002; }
+
+    /* Sentiment */
+    .sentiment-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .sent-card { background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+    .sent-label { font-size: 0.85rem; font-weight: 800; margin-bottom: 8px; display: flex; justify-content: space-between; }
+    .sent-bar { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+    .sent-fill { height: 100%; transition: width 1s ease-in-out; }
+
+    /* Tables */
+    .table-scroll { max-height: 350px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { position: sticky; top: 0; background: #f8fafc; padding: 12px; text-align: right; z-index: 10; border-bottom: 2px solid #e2e8f0; }
+    td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; color: white; font-weight: 800; font-size: 0.75rem; }
+
+    /* Filters */
+    .filter-group { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+    .select-custom { padding: 6px 12px; border-radius: 6px; border: 2px solid #e2e8f0; font-family: inherit; font-weight: 700; cursor: pointer; }
+    
+    .btn-action { background: var(--accent); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 900; }
+
+    /* تخلفات و پاپ‌آپ */
+    .violation-list { list-style: none; padding: 0; margin: 0; }
+    .violation-item { 
+      font-size: 0.9rem; padding: 10px 10px; color: #444; border-bottom: 1px solid #f1f5f9; font-weight:bold;
+      cursor: pointer; transition: background 0.2s; display: flex; justify-content: space-between; align-items: center;
+    }
+    .violation-item:hover { background: #f8fafc; }
+    .violation-text { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .violation-text:before { content: "⚠️"; font-size: 1rem; }
+    
+    .violation-badge {
+      font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; color: white; 
+      font-weight: 900; white-space: nowrap; margin-right: 5px;
+    }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); display: none; justify-content: center;
+      align-items: center; z-index: 2000; backdrop-filter: blur(3px);
+    }
+    .modal-box {
+      background: white; padding: 25px; border-radius: 15px; width: 500px;
+      max-width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); border-top: 6px solid var(--danger);
+    }
+    .modal-box h3 { margin-top: 0; color: var(--danger); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .modal-body { font-size: 0.9rem; line-height: 1.8; color: #334155; margin: 15px 0; }
+    .btn-close { 
+      background: #eee; border: none; padding: 8px 15px; border-radius: 5px; 
+      cursor: pointer; font-family: Vazirmatn; font-weight: bold; float: left;
+    }
+  </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h3 id="modalTitle">جزئیات تخلف</h3>
+    <div class="modal-body" id="modalBody">محتوا بارگذاری نشد.</div>
+    <button class="btn-close" onclick="closeModal()">بستن پنجره</button>
+  </div>
+</div>
+
+<div class="container">
+  <header class="main-header">
+    <div>
+      <h1 style="margin:0;">داشبورد اضطراری ریاست بنیاد مسکن</h1>
+      <p style="margin:5px 0 0 0; opacity: 0.8;"> پایش متمرکز پروژه‌های ملی، هشدارهای نظارتی و شاخص‌های سرمایه اجتماعی - (داده‌های فرضی)</p>
+    </div>
+    <div style="display:flex; gap:15px;">
+      <a href="#" class="btn-action" style="background:#fff; color:#000;">SMS  به مدیران مربوطه</a>
+      <a href="https://script.google.com/macros/s/AKfycbwvRA-WW_e4ynVJYKx1rzVPv9RtO3x2jEv9B_I0KacCSFCAhLvLbwyHZcyoctuDpNfN/exec"
+    target="_blank"  class="btn-action">SMS  به ریاست</a>
+    </div>
+  </header>
+
+  <section class="top-gauges">
+    <div class="gauge-item">
+      <div style="font-weight:900; margin-bottom:10px;">فشار دستگاه‌های نظارتی</div>
+      <canvas id="g1" class="gauge-canvas"></canvas>
+      <div class="gauge-val" style="color:var(--danger)">۱۹٪</div>
+      <div class="gauge-target">سقف بحران: ۱۰۰٪</div>
+    </div>
+    <div class="gauge-item">
+      <div style="font-weight:900; margin-bottom:10px;">مسکن محرومین</div>
+      <canvas id="g2" class="gauge-canvas"></canvas>
+      <div class="gauge-val" style="color:var(--success)">۷۲٪</div>
+      <div class="gauge-target">پیشرفت هدف: ۸۵٪</div>
+    </div>
+    <div class="gauge-item">
+      <div style="font-weight:900; margin-bottom:10px;">نهضت ملی مسکن</div>
+      <canvas id="g3" class="gauge-canvas"></canvas>
+      <div class="gauge-val" style="color:var(--warning)">۶۴٪</div>
+      <div class="gauge-target">هدف سال: ۷۰٪</div>
+    </div>
+    <div class="gauge-item">
+      <div style="font-weight:900; margin-bottom:10px;">بحران‌های طبیعی</div>
+      <canvas id="g4" class="gauge-canvas"></canvas>
+      <div class="gauge-val" style="color:var(--success)">۷۸٪</div>
+      <div class="gauge-target">بازسازی شروع شده: ۸۰٪</div>
+    </div>
+    <div class="gauge-item">
+      <div style="font-weight:900; margin-bottom:10px;">شرکت‌های تابعه</div>
+      <canvas id="g5" class="gauge-canvas"></canvas>
+      <div class="gauge-val" style="color:var(--warning)">۴۶٪</div>
+      <div class="gauge-target">میانگین سود دهی: ۶۰٪</div>
+    </div>
+  </section>
+
+  <div class="grid-main">
+    <aside>
+      <div class="card" style="border-top: 5px solid var(--accent);">
+        <div class="card-h">🤝 شاخص‌های مقبولیت عالی</div>
+        <div class="sentiment-grid">
+          <div class="sent-card"><div class="sent-label"><span>پرسنل بنیاد</span><span>۸۲٪</span></div><div class="sent-bar"><div class="sent-fill" style="width:82%; background:var(--success)"></div></div></div>
+          <div class="sent-card"><div class="sent-label"><span>رضایت متقاضیان</span><span>۶۵٪</span></div><div class="sent-bar"><div class="sent-fill" style="width:65%; background:var(--primary)"></div></div></div>
+          <div class="sent-card"><div class="sent-label"><span>جایگاه رسانه‌ای</span><span>۴۸٪</span></div><div class="sent-bar"><div class="sent-fill" style="width:48%; background:var(--danger)"></div></div></div>
+          <div class="sent-card"><div class="sent-label"><span>تعامل با دولت</span><span>۹۰٪</span></div><div class="sent-bar"><div class="sent-fill" style="width:90%; background:var(--success)"></div></div></div>
+          <div class="sent-card"><div class="sent-label"><span>همراهی مجلس</span><span>۵۵٪</span></div><div class="sent-bar"><div class="sent-fill" style="width:55%; background:var(--warning)"></div></div></div>
+        </div>
+
+        <div class="card-h" style="margin-top:25px; color: var(--danger);">🛑 تخلفات نیاز به بررسی</div>
+        <ul class="violation-list" id="violationList"></ul>
+      </div>
+    </aside>
+
+    <main>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-h">📈 عملکرد تفکیکی و مقایسه‌ای استان‌ها</div>
+        <div class="filter-group">
+          <label style="font-weight:900;">نوع پروژه:</label>
+          <select id="chartProjectFilter" class="select-custom"></select>
+          <span id="chartInfo" style="font-size:0.8rem; color:var(--muted)"></span>
+        </div>
+        <div style="height:320px;"><canvas id="mainProvinceChart"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">📋 وضعیت پیشرفت و فوریت کلی استان‌ها</div>
+        <div class="filter-group">
+          <label style="font-weight:900;">فیلتر وضعیت:</label>
+          <select id="tableStatusFilter" class="select-custom">
+            <option value="all">همه استان‌ها</option>
+            <option value="critical">بحرانی</option>
+            <option value="high">اولویت بالا</option>
+            <option value="normal">عادی/پایدار</option>
+          </select>
+        </div>
+        <div class="table-scroll">
+          <table id="provinceTable">
+            <thead><tr><th>استان</th><th>پیشرفت نهضت ملی</th><th>تعداد اضطراری</th><th>مشکل مالی</th><th>وضعیت نهایی</th></tr></thead>
+            <tbody id="provinceTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <aside>
+      <div class="card" style="border-right: 5px solid var(--danger);">
+        <div class="card-h" style="color:var(--danger)">🔥 مرکز هشدارهای اضطراری</div>
+        <div class="alert-scroll">
+          <div class="alert-card"><div class="alert-title"><span>⚖️ دیوان محاسبات</span> <span class="badge">۴۸ ساعت</span></div><div class="alert-desc">بررسی تأخیر پرداخت تسهیلات نهضت ملی در ۵ استان.</div><div class="alert-footer"><span class="badge">کد: ۱۰۴</span><span class="badge">فوری</span></div></div>
+          <div class="alert-card"><div class="alert-title"><span>🔍 سازمان بازرسی</span> <span class="badge">آنی</span></div><div class="alert-desc">مغایرت در تخصیص زمین پروژه‌های بازسازی در سیستان.</div></div>
+          <div class="alert-card warning"><div class="alert-title"><span>🏛️ کمیسیون اصل ۹۰</span> <span class="badge">۷۲ ساعت</span></div><div class="alert-desc">درخواست شفاف‌سازی در مورد پیمانکاران خراسان.</div></div>
+          <div class="alert-card warning"><div class="alert-title"><span>📢 پایش رسانه‌ای</span> <span class="badge">بحران</span></div><div class="alert-desc">افزایش واکنش منفی نسبت به کیفیت ساخت پروژه اصفهان.</div></div>
+          <div class="alert-card info"><div class="alert-title"><span>🏢 استاندار سیستان</span> <span class="badge">نامه رسمی</span></div><div class="alert-desc">درخواست تسریع در بازسازی واحدهای سیل‌زده.</div></div>
+          <div class="alert-card"><div class="alert-title"><span>⚠️ تنش اجتماعی</span> <span class="badge">فوق فوری</span></div><div class="alert-desc">تجمع متقاضیان در مقابل اداره کل زنجان.</div></div>
+          <div class="alert-card info"><div class="alert-title"><span>🤝 نایب رئیس مجلس</span> <span class="badge">هماهنگی</span></div><div class="alert-desc">پیگیری تأمین اعتبار طرح‌های هادی.</div></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const violations = [
+    { title: "تخطی از سقف بودجه", unit: "خوزستان", color: "var(--danger)", detail: "پروژه بازسازی سیل زدگان خوزستان ۱۵٪ بیشتر از سقف مصوب هزینه تراشی کرده است." },
+    { title: "واگذاری غیرقانونی زمین", unit: "کرمان", color: "var(--danger)", detail: "گزارش واگذاری زمین‌های دولتی در حریم شهر به افراد فاقد صلاحیت." },
+    { title: "استخدام خارج از ضابطه", unit: "شرکت تابعه", color: "var(--accent)", detail: "عدم رعایت ضوابط آزمون سراسری در جذب نیروی جدید شرکت عمران." },
+    { title: "تأخیر عامدانه پیمانکار", unit: "اصفهان", color: "var(--warning)", detail: "پیمانکار علیرغم دریافت پیش‌پرداخت، ماشین‌آلات را منتقل کرده است." },
+    { title: "نقص ایمنی سازه", unit: "واحد تولیدی", color: "var(--danger)", detail: "تجهیزات پیش‌ساخته استانداردهای مقاومت زلزله را پاس نکرده‌اند." },
+    { title: "تبانی در مناقصه", unit: "لرستان", color: "var(--danger)", detail: "شکایت مکتوب در مورد نحوه بازگشایی پاکت‌های مناقصه راه روستایی." },
+    { title: "برداشت از حساب امانی", unit: "مدیریت شعب", color: "var(--accent)", detail: "جابجایی اعتبار از حساب متقاضیان به بخش هزینه‌های اداری." },
+    { title: "کیفیت پایین بتن", unit: "تهران", color: "var(--danger)", detail: "نمونه‌برداری نشان‌دهنده استفاده از متریال درجه ۳ در فونداسیون است." },
+    { title: "عدم تطابق لیست بیمه", unit: "بنیاد بتن", color: "var(--warning)", detail: "بیش از ۲۰ نفر از کارگران فاقد بیمه حوادث معتبر هستند." },
+    { title: "انحراف بودجه مسکن", unit: "گیلان", color: "var(--accent)", detail: "بودجه تکمیل واحدها صرف خرید تجهیزات اداری شده است." }
+  ];
+
+  const violList = document.getElementById('violationList');
+  violations.forEach(v => {
+    const li = document.createElement('li');
+    li.className = 'violation-item';
+    li.innerHTML = `
+      <div class="violation-text">${v.title}</div>
+      <span class="violation-badge" style="background:${v.color}">${v.unit}</span>
+    `;
+    li.onclick = () => openModal(v.title + " (" + v.unit + ")", v.detail);
+    violList.appendChild(li);
+  });
+
+  function openModal(title, detail) {
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalBody').innerText = detail;
+    document.getElementById('modalOverlay').style.display = 'flex';
+  }
+
+  function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+  // Chart and Table Logic (Keep original)
+  const provinces = ['تهران', 'خراسان رضوی', 'فارس', 'اصفهان', 'خوزستان', 'آذربایجان شرقی', 'لرستان', 'سیستان و بلوچستان', 'گیلان', 'کرمان', 'مازندران', 'کرمانشاه'];
+  const projectsData = {
+    'نهضت ملی مسکن (واحد)': { data: [420, 180, 210, 240, 120, 150, 95, 60, 130, 70, 110, 90], color: '#1e40af' },
+    'پروژه‌های اضطراری': { data: [25, 40, 18, 30, 55, 22, 48, 92, 28, 14, 35, 44], color: '#e11d48' },
+    'طرح‌های هادی': { data: [80, 60, 75, 50, 40, 45, 130, 160, 55, 30, 90, 70], color: '#10b981' },
+    'مشکلات مالی (%)': { data: [75, 50, 60, 80, 92, 55, 85, 95, 70, 45, 65, 78], color: '#f59e0b' }
+  };
+  const provinceStatusData = [
+    { name: 'تهران', nahzat: 65, emergency: 25, finance: 75, status: 'high' },
+    { name: 'خراسان رضوی', nahzat: 88, emergency: 40, finance: 50, status: 'normal' },
+    { name: 'خوزستان', nahzat: 45, emergency: 55, finance: 92, status: 'critical' },
+    { name: 'سیستان و بلوچستان', nahzat: 35, emergency: 92, finance: 95, status: 'critical' },
+    { name: 'اصفهان', nahzat: 55, emergency: 30, finance: 80, status: 'high' },
+    { name: 'لرستان', nahzat: 50, emergency: 48, finance: 85, status: 'critical' },
+    { name: 'مازندران', nahzat: 68, emergency: 35, finance: 65, status: 'high' }
+  ];
+
+  function drawGauge(id, value, color) {
+    const ctx = document.getElementById(id).getContext('2d');
+    const cx = 100, cy = 90, r = 70; ctx.canvas.width = 200; ctx.canvas.height = 110;
+    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, 0); ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, Math.PI + (Math.PI * value / 100)); ctx.strokeStyle = color; ctx.lineWidth = 12; ctx.lineCap = 'round'; ctx.stroke();
+  }
+  ['g1','g2','g3','g4','g5'].forEach((g,i) => drawGauge(g, [19,72,64,78,46][i], ['#e11d48','#10b981','#f59e0b','#10b981','#f59e0b'][i]));
+
+  const ctxBar = document.getElementById('mainProvinceChart').getContext('2d');
+  let mainChart = new Chart(ctxBar, { type: 'bar', data: { labels: provinces, datasets: [{ data: [], backgroundColor: '', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+  function updateChart(key) { mainChart.data.datasets[0].data = projectsData[key].data; mainChart.data.datasets[0].backgroundColor = projectsData[key].color; mainChart.update(); document.getElementById('chartInfo').innerText = `نمایش: ${key}`; }
+  const chartSel = document.getElementById('chartProjectFilter'); Object.keys(projectsData).forEach(k => chartSel.innerHTML += `<option value="${k}">${k}</option>`);
+  chartSel.onchange = (e) => updateChart(e.target.value); updateChart(Object.keys(projectsData)[0]);
+
+  function renderTable(f = 'all') {
+    const b = document.getElementById('provinceTableBody'); b.innerHTML = '';
+    provinceStatusData.forEach(d => {
+      if(f !== 'all' && d.status !== f) return;
+      let c = d.status === 'critical' ? 'var(--danger)' : (d.status === 'high' ? 'var(--warning)' : 'var(--success)');
+      let t = d.status === 'critical' ? 'بحرانی' : (d.status === 'high' ? 'اولویت بالا' : 'پایدار');
+      b.innerHTML += `<tr><td><strong>${d.name}</strong></td><td>${d.nahzat}%</td><td>${d.emergency}</td><td>${d.finance}%</td><td><span class="status-badge" style="background:${c}">${t}</span></td></tr>`;
+    });
+  }
+  document.getElementById('tableStatusFilter').onchange = (e) => renderTable(e.target.value); renderTable();
+</script>
+</body>
+</html>
