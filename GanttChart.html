@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        @media print {
+            @page { size: landscape; margin: 5mm; }
+            body { padding: 0; background: white; }
+            .no-print { display: none; }
+        }
+
+        :root {
+            --p-blue: #1e3a8a;
+            --p-gold: #b45309;
+            --border: #94a3b8;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            color: #0f172a;
+        }
+
+        .print-container {
+            width: 98%;
+            max-width: 1650px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+
+        /* بنر مخصوص چاپ */
+        .print-header {
+            border-bottom: 4px solid var(--p-blue);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .print-header h1 { font-size: 28px; margin: 0; color: var(--p-blue); }
+        .print-header p { font-size: 16px; margin: 5px 0 0; color: #475569; }
+
+        /* کارت‌های KPI با کادر ضخیم برای چاپ */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+
+        .banner-text h1 { margin: 0; font-size: 28px; letter-spacing: -1px; }
+        .banner-text p { margin: 10px 0 0; opacity: 0.9; font-size: 14px; }
+        
+        .banner-metrics { display: flex; gap: 30px; }
+        .metric-item { text-align: center; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); }
+        .metric-item span { display: block; font-size: 20px; font-weight: 800; color: #fbbf24; }
+        .metric-item small { font-size: 11px; }
+
+
+        .kpi-card {
+            border: 2px solid #47556921;
+            border-radius: 12px;
+            padding: 15px;
+            background: #fff1a2;;
+border-right: 4px solid #a69c00;
+        }
+        .kpi-card small { font-size: 12px; color: #64748b; font-weight: bold; }
+        .kpi-card div { font-size: 20px; font-weight: 900; color: #1e293b; margin-top: 5px; }
+
+        /* بنر فوقانی استراتژیک */
+        .top-banner {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+            color: white;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 5px solid #fbbf24;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+           margin-bottom: 15px;
+        }
+
+
+        /* جدول اصلی گانت */
+        .gantt-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .gantt-table th, .gantt-table td {
+            border: 1px solid #d6d9dd;
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .th-main { background: #f1f5f9; font-size: 14px; font-weight: 900; }
+        .th-month { background: #e2e8f0; font-size: 12px; width: 4.5%; text-align: center; }
+
+        /* ستون جزئیات */
+        .col-details { width: 28%; text-align: right; }
+        .col-dept { width: 12%; text-align: center; font-weight: bold; font-size: 13px; color: #334155; }
+
+        .project-title { font-size: 16px; font-weight: 900; color: var(--p-blue); display: block; margin-bottom: 8px; }
+        .sub-list { font-size: 11.5px; color: #4b5563; line-height: 1.6; display: block; }
+
+        /* میله‌های رنگی برای چاپ */
+        .bar {
+            height: 35px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* تنوع رنگی با کنتراست بالا */
+        .bg-1 { background-color: #2563eb !important; } /* آبی */
+        .bg-2 { background-color: #059669 !important; } /* سبز */
+        .bg-3 { background-color: #d97706 !important; } /* نارنجی */
+        .bg-4 { background-color: #7c3aed !important; } /* بنفش */
+        .bg-5 { background-color: #db2777 !important; } /* صورتی */
+        .bg-6 { background-color: #0891b2 !important; } /* فیروزه‌ای */
+        .bg-7 { background-color: #475569 !important; } /* خاکستری تیره */
+        .bg-8 { background-color: #dc2626 !important; } /* قرمز */
+
+        .timeline-cell { position: relative; padding: 0 !important; height: 60px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="print-container">
+    <div class="top-banner">
+        <div class="banner-text">
+            <h1>برنامه عملیاتی - سامانه نظارت استراتژیک ریاست ( Gantt Chart )</h1>
+            <p>بنیاد مسکن انقلاب اسلامی | مانیتورینگ آنلاین پیشرفت فیزیکی و عملیاتی</p>
+        </div>
+        <div class="banner-metrics">
+            <div class="metric-item"><small>ماژول و زیرماژول</small><span>۱۲۸</span></div>
+            <div class="metric-item"><small>زمان اجرا</small><span>12 ماه</span></div>
+            <div class="metric-item"><small>هوش مصنوعی</small><span>فعال</span></div>
+        </div>
+    </div>
+
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <small>بخش‌های مدیریتی</small>
+                <div>۱۰ حوزه کلان</div>
+            </div>
+            <div class="kpi-card">
+                <small>زیرسامانه‌ها</small>
+                <div>۴۲ ماژول فعال</div>
+            </div>
+            <div class="kpi-card">
+                <small>متولیان اجرایی</small>
+                <div> ستادی - استانی - شرکتها </div>
+            </div>
+            <div class="kpi-card">
+                <small>پایش هوشمند</small>
+                <div>۵ موتور AI</div>
+            </div>
+            <div class="kpi-card">
+                <small>سازمان‌های در ارتباط</small>
+                <div>مجلس - دولت - شهرداری‌ها</div>
+            </div>
+        </div>
+
+        <table class="gantt-table">
+            <thead>
+                <tr>
+                    <th class="th-main col-details">شرح بخش و زیرپروژه‌های اجرایی</th>
+                    <th class="th-main col-dept">واحد متولی</th>
+                    <th class="th-month">فروردین</th><th class="th-month">اردیبهشت</th><th class="th-month">خرداد</th>
+                    <th class="th-month">تیر</th><th class="th-month">مرداد</th><th class="th-month">شهریور</th>
+                    <th class="th-month">مهر</th><th class="th-month">آبان</th><th class="th-month">آذر</th>
+                    <th class="th-month">دی</th><th class="th-month">بهمن</th><th class="th-month">اسفند</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۱ و ۹. شورای مرکزی و ارتباطات ریاست</span>
+                        <span class="sub-list">مصوبات شورا، ابلاغیه‌ها، تعامل مستقیم با ریاست، پیگیری‌های ویژه</span>
+                    </td>
+                    <td class="col-dept">حوزه ریاست</td>
+                    <td colspan="12" class="timeline-cell">
+                        <div class="bar bg-1" style="width: 98%; margin: 0 auto;">مصوبات شورا - ابلاغیه‌ها - تعامل مستقیم با ریاست - پیگیری‌های ویژه</div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۳. امور ستادی، پرسنلی و حقوقی</span>
+                        <span class="sub-list">پرونده‌های حقوقی، ارزشیابی کارکنان، وضعیت استخدامی، آموزش و ارتقاء، بانک اطلاعات انسانی</span>
+                    </td>
+                    <td class="col-dept">معاونت پشتیبانی</td>
+                    <td></td><td></td>
+                    <td colspan="8" class="timeline-cell">
+                        <div class="bar bg-2" style="width: 95%; margin: 0 auto;">امور حقوقی - ارزشیابی - آموزش و ارتقاء - منابع انسانی - حقوق و دسمتزد</div>
+                    </td>
+                    <td></td><td></td><td></td><td></td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">واحد هوش مصنوعی (AI)</span>
+                        <span class="sub-list">شناسایی ناهنجاری‌ها، پایش و هشدار هوشمند، تحلیل پیشنهاد، طبقه‌بندی خودکار، پیش‌بینی سناریو</span>
+                    </td>
+                    <td class="col-dept">کمیته راهبری</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td colspan="5" class="timeline-cell">
+                        <div class="bar bg-4" style="width: 95%; margin: 0 auto;">پایش و هشدار هوشمند - پیش‌بینی سناریو</div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۴ و ۲. امور استان‌ها و پایش عملکرد</span>
+                        <span class="sub-list">عملکرد استانی، شاخص‌های توسعه، وضعیت پروژه‌ها، اعتبارات، ارزیابی مدیران، داشبوردهای نظارتی</span>
+                    </td>
+                    <td class="col-dept">واحد نظارت و ارزیابی</td>
+                    <td></td>
+                    <td colspan="10" class="timeline-cell">
+                        <div class="bar bg-3" style="width: 98%; margin: 0 auto;">عملکرد استان‌ها - شاخص‌های توسعه - وضعیت پروژه‌ها - اعتبارات - ارزیابی مدیران</div>
+                    </td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۸. سامانه‌های بنیاد مسکن</span>
+                        <span class="sub-list">پرتال، GIS، سامانه رصد، سماع، رفاهی، راهبر، نظام فنی روستایی، کتابخانه</span>
+                    </td>
+                    <td class="col-dept">واحد فناوری اطلاعات</td>
+                    <td colspan="12" class="timeline-cell">
+                        <div class="bar bg-7" style="width: 95%; height: 35px;   margin: 0 auto;">توسعه و نگهداری زیرساخت‌های دیتاسنتری (Internal & External Web Application)</div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۵. امور شرکت‌ها و مجامع</span>
+                        <span class="sub-list">اطلاعات مالی، عملکرد مجامع، پایش پروژه‌های سرمایه‌گذاری، عملکرد هیئت‌مدیره</span>
+                    </td>
+                    <td class="col-dept">دفتر امور مجامع</td>
+                    <td></td><td></td><td></td><td></td><td></td>
+                    <td colspan="5" class="timeline-cell">
+                        <div class="bar bg-8" style="width: 95%; margin: 0 auto;"> مجامع و پایش سودآوری - عملکرد هیئت مدیره</div>
+                    </td>
+                    <td></td><td></td><td></td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۶. تعاملات پارلمانی و دولتی</span>
+                        <span class="sub-list">پایش طرح‌ها و لوایح، تحلیل مواضع نمایندگان، تعامل با وزارتخانه‌ها، بانک دیدگاه‌ها</span>
+                    </td>
+                    <td class="col-dept">معاونت برنامه‌ریزی</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td colspan="6" class="timeline-cell">
+                        <div class="bar bg-6" style="width: 95%; margin: 0 auto;">مدیریت تعاملات حاکمیتی (مجلس - دولت - شهرداری - بانک‌ها و ...)</div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۷. رسانه‌ها و شبکه‌های اجتماعی</span>
+                        <span class="sub-list">پایش اخبار، تحلیل بازخورد رسانه‌ای، تحلیل محتوای فضای مجازی، رضایت افکار عمومی</span>
+                    </td>
+                    <td class="col-dept">روابط عمومی</td>
+                    <td></td><td></td><td></td>
+                    <td colspan="9" class="timeline-cell">
+                        <div class="bar bg-5" style="width: 98%; margin: 0 auto;">مهندسی تصویر سازمان و افکارسنجی (فضای مجازی، افکار عمومی و رسانه‌ها)</div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="col-details">
+                        <span class="project-title">۱۰. مدیریت و نظارت پروژه‌ها</span>
+                        <span class="sub-list">نقشه پروژه‌ها، پیشرفت فیزیکی، تصاویر ماهواره‌ای، فیلتر استانی، رصد پروژه‌های کلیدی</span>
+                    </td>
+                    <td class="col-dept">معاونت مربوطه</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td colspan="6" class="timeline-cell">
+                        <div class="bar bg-1" style="width: 95%; margin: 0 auto; background-color:#0369a1 !important;">نظارت عالیه پروژه‌ها (GIS و تصاویر ماهواره‌ای - رصد پروژه‌های کلیدی)</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
